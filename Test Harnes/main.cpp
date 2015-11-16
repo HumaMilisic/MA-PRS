@@ -965,16 +965,16 @@ bool testPoredjenje(vector<string>&putanje)
 		prosjeci.push_back(suma / vrijeme.size());
 		vrijeme.clear();
 
-		//for (int k = 0; k < BR_PONAVLJANJA; k++)
-		//{
-		//	F(k);
-		//	vrijeme.push_back(paralelniBFS(h_V, h_E, sizeV, sizeE));
-		//}
-		//suma = std::accumulate(vrijeme.begin(), vrijeme.end(), 0.0f);
-		////_log << endl;
-		//_log << putanje[i] << ": paralelniBFS Prosjek " << suma / vrijeme.size() << endl << endl;
-		//prosjeci.push_back(suma / vrijeme.size());
-		//vrijeme.clear();
+		for (int k = 0; k < BR_PONAVLJANJA; k++)
+		{
+			F(k);
+			vrijeme.push_back(paralelniBFS(h_V, h_E, sizeV, sizeE));
+		}
+		suma = std::accumulate(vrijeme.begin(), vrijeme.end(), 0.0f);
+		//_log << endl;
+		_log << putanje[i] << ": paralelniBFS Prosjek " << suma / vrijeme.size() << endl << endl;
+		prosjeci.push_back(suma / vrijeme.size());
+		vrijeme.clear();
 
 		free(h_V);
 		free(h_E);

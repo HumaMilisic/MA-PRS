@@ -163,15 +163,16 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
   </ItemGroup>
   <ItemGroup>
     <Text Include="cpuVSGpuRelease.log" />
+    <Text Include="inputArrayDebug.log" />
     <Text Include="output.log" />
     <Text Include="output2-1.log" />
     <Text Include="output2.log" />
     <Text Include="sparseRelease.log" />
+    <Text Include="sviGrafoviBFSseqDebug.log" />
     <Text Include="sviGrafoviBFSseqRelease.log" />
+    <Text Include="sviGrafoviInputDebug.log" />
     <Text Include="sviGrafoviInputRelease.log" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Input\nlpkkt160.graph" />
+    <Text Include="temp.log" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

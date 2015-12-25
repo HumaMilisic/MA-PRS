@@ -24,15 +24,18 @@
 #define F(x) cout<< #x " = "<<x<<"\n";
 #define FL(x) _log<<" "#x " = "<<x<<" ";
 #define FI 0.0001
-const int BR_PONAVLJANJA = 5;
+const int BR_PONAVLJANJA = 1;
 
 using namespace std;
 
-ofstream _log("temp.log");
+ofstream _log;// ("tempsfddddD.log");
 
 extern "C" bool runTest();
 
 extern "C" double paralelniBFS(long *h_V, long*h_E, long sizeV, long sizeE);
+extern "C" double paralelniBFS_64(long *h_V, long *h_E, long sizeV, long sizeE);
+extern "C" double paralelniBFS_1(long *h_V, long *h_E, long sizeV, long sizeE);
+//extern "C" double paralelniBFS_1_Share(long *h_V, long *h_E, long sizeV, long sizeE);
 
 int iOfSmallest(vector<double>&niz)
 {
@@ -482,7 +485,7 @@ inline void dodajUNiz(long *V, long &sizeV,long sizeE,long n)
 
 double inputAVE(const string&path, long **V, long**E, long &sizeV, long &sizeE)
 {
-	_log << "inputAVE: " << path;// >> endl;
+	//_log << "inputAVE: " << path;// >> endl;
 	ifstream in(path);
 
 	long n(0), m(0);
@@ -507,9 +510,10 @@ double inputAVE(const string&path, long **V, long**E, long &sizeV, long &sizeE)
 				parse2(line, rezB);
 				n = rezB[0] + 1;
 				m = rezB[1] + 1;
-				FL(n);
+				_log << n << ";" << m << ";";
+				/*FL(n);
 				FL(m);
-				FL(double(m / n));
+				FL(double(m / n));*/
 				*V = (long*)malloc(n*sizeof(long));
 				*E = (long*)malloc((2*m+10)*sizeof(long));
 				//sizeV = n;
@@ -531,7 +535,7 @@ double inputAVE(const string&path, long **V, long**E, long &sizeV, long &sizeE)
 		
 		double diff = (double)(clock() - t0) / CLOCKS_PER_SEC;
 		//FL(n); FL(m);
-		_log << " " << diff << " \n";
+		//_log << " " << diff << " \n";
 		in.close();
 		return diff;
 	}
@@ -927,57 +931,71 @@ bool testBFSseq(vector<string>&putanje)
 
 bool testPoredjenje(vector<string>&putanje)
 {
-	for (int i = 0; i < putanje.size(); i++)
+	for (int k = 0; k < BR_PONAVLJANJA; k++)
 	{
-		vector<double>prosjeci;
-		vector<double>vrijeme;
-		double suma;
-		//vector<long>tempE, tempV;
-		//cout << "inputCVE2_1\n";
-		//inputCVE2_1(putanje[i], tempV, tempE);
-
-		long *h_V(NULL), *h_E(NULL), sizeE(0), sizeV(0);
-		cout << "inputAVE\n";
-		inputAVE(putanje[i], &h_V, &h_E, sizeV, sizeE);
-
-		//for (int k = 0; k < BR_PONAVLJANJA; k++)
+		//for (int i = 0; i < putanje.size(); i++)
 		//{
+
+		//	long *h_V(NULL), *h_E(NULL), sizeE(0), sizeV(0);
+		//	cout << "inputAVE\n";
+		//	_log << putanje[i] << ";";
+		//	inputAVE(putanje[i], &h_V, &h_E, sizeV, sizeE);
+		//	
 		//	F(k);
-		//	vrijeme.push_back(BFSseq(tempV, tempE));
+		//	double v = (paralelniBFS(h_V, h_E, sizeV, sizeE));
+		//	_log << "paralelniBFS;"<<v << endl;
+
+		//	free(h_V);
+		//	free(h_E);
 		//}
-		//suma = std::accumulate(vrijeme.begin(), vrijeme.end(), 0.0f);
-		//_log << endl;
-		//_log << putanje[i] << ": BFSseq Prosjek " << suma / vrijeme.size() << endl << endl;
-		//prosjeci.push_back(suma / vrijeme.size());
-		//vrijeme.clear();
 
+		////nope sporo
+		//for (int i = 0; i < putanje.size(); i++)
+		//{
 
-		for (int k = 0; k < BR_PONAVLJANJA; k++)
+		//	long *h_V(NULL), *h_E(NULL), sizeE(0), sizeV(0);
+		//	cout << "inputAVE\n";
+		//	_log << putanje[i] << ";";
+		//	inputAVE(putanje[i], &h_V, &h_E, sizeV, sizeE);
+
+		//	//F(k);
+		//	double v = (paralelniBFS_64(h_V, h_E, sizeV, sizeE));
+		//	_log << "paralelniBFS_64;" << v << endl;
+
+		//	free(h_V);
+		//	free(h_E);
+		//}
+		//extern "C" double paralelniBFS_1(long *h_V, long *h_E, long sizeV, long sizeE)
+		for (int i = 0; i < putanje.size(); i++)
 		{
-			F(k);
-			vrijeme.push_back(BFSAVEseq(h_V, h_E, sizeV, sizeE));
-		}
-		//free(h_V);
-		//free(h_E);
-		suma = std::accumulate(vrijeme.begin(), vrijeme.end(), 0.0f);
-		//_log << endl;
-		_log << putanje[i] << ": BFSAVEseq Prosjek " << suma / vrijeme.size() << endl;
-		prosjeci.push_back(suma / vrijeme.size());
-		vrijeme.clear();
 
-		for (int k = 0; k < BR_PONAVLJANJA; k++)
-		{
-			F(k);
-			vrijeme.push_back(paralelniBFS(h_V, h_E, sizeV, sizeE));
-		}
-		suma = std::accumulate(vrijeme.begin(), vrijeme.end(), 0.0f);
-		//_log << endl;
-		_log << putanje[i] << ": paralelniBFS Prosjek " << suma / vrijeme.size() << endl << endl;
-		prosjeci.push_back(suma / vrijeme.size());
-		vrijeme.clear();
+			long *h_V(NULL), *h_E(NULL), sizeE(0), sizeV(0);
+			cout << "inputAVE\n";
+			_log << putanje[i] << ";";
+			inputAVE(putanje[i], &h_V, &h_E, sizeV, sizeE);
 
-		free(h_V);
-		free(h_E);
+			F(k);
+			double v = (paralelniBFS_1(h_V, h_E, sizeV, sizeE));
+			_log << "paralelniBFS_1;" << v << endl;
+
+			free(h_V);
+			free(h_E);
+		}
+		//for (int i = 0; i < putanje.size(); i++)
+		//{
+
+		//	long *h_V(NULL), *h_E(NULL), sizeE(0), sizeV(0);
+		//	cout << "inputAVE\n";
+		//	_log << putanje[i] << ";";
+		//	inputAVE(putanje[i], &h_V, &h_E, sizeV, sizeE);
+
+		//	F(k);
+		//	double v = (paralelniBFS_1_Share(h_V, h_E, sizeV, sizeE));
+		//	_log << "paralelniBFS_1_Share;" << v << endl;
+
+		//	free(h_V);
+		//	free(h_E);
+		//}
 	}
 	return 0;
 
@@ -1002,6 +1020,12 @@ extern "C" void uhvatiNiz(long *niz, long size);
 
 int main()
 {
+	std::time_t result = std::time(nullptr);
+	std::string s = std::to_string(result);
+
+	string fileName = s + "paralelReleasev1.log";
+	_log = ofstream(fileName);
+	_log << "graf;n;m;algoritam;vrijeme" << endl;
 	vector<string>putanje;
 	if (putanjeGrafova(putanje))
 	{
@@ -1013,56 +1037,28 @@ int main()
 	
 	testPoredjenje(putanje);
 
-	//int *niz, size(10);
-	//alloc(&niz, size);
-	////memset(niz, 0, size*sizeof(int));
-	//copy(niz, niz + size, ostream_iterator<int>(cout, ", "));
-	//free(niz);
+	//ifstream test("costArrayProvjeraDebug.log");
 
-	//long *h_V(NULL), *h_E(NULL), sizeE(0), sizeV(0);
-	////vector<long>E, V;
-	//
-	//double rez(inputAVE(putanje[0], &h_V, &h_E, sizeV, sizeE));// ,
-	////	rez2(inputCVE2_1(TEST_STR,V,E));
-
-	//BFSAVEseq(h_V, h_E, sizeV, sizeE);
-	//paralelniBFS(h_V, h_E, sizeV, sizeE);
-
-	//long *niz(NULL), size(10);
-	////h_F = (long*)malloc(sizeV);
-	//niz = (long*)malloc(size*sizeof(long));
-	//memset(niz, 0, size*sizeof(long));
-	//uhvatiNiz(niz, size);
-	//free(niz);
-
-	//if (rez != -1)
-	//{
-	//		cout << "V: ";
-	//		copy(h_V, h_V+sizeV, ostream_iterator<long>(cout, ", "));
-	//		cout << "\nE: ";
-	//		copy(h_E, h_E+sizeE, ostream_iterator<long>(cout, ", "));
+	//vector<long> v1,v2;
+	//string temp;
+	//vector<long>*point = NULL;
+	//while (test >> temp)
+	//{		
+	//	if (temp == ";" &&v1.empty())
+	//	{
+	//		point = &v1;
+	//		continue;
+	//	}
+	//	if (temp == ";" && !v1.empty())
+	//	{
+	//		point = &v2;
+	//		continue;
+	//	}
+	//	long cifra = atol(temp.c_str());
 	//}
-	//BFSseq(V, E);
-	//cout << "\n";
-	//BFSAVEseq(h_V, h_E, sizeV, sizeE);
-	//free(h_V);
-	//free(h_E);
-	//testInput(putanje);
-	//testBFSseq(putanje);
 
-	//vector<long> E, V;
-
-	//cout << "Input: ";
-	//inputCVE2_1(TEST_STR,V, E);
-	//cout << "\nV: ";
-	//copy(V.begin(), V.end(), ostream_iterator<long>(cout, ", "));
-	//cout << "\nE: ";
-	//copy(E.begin(), E.end(), ostream_iterator<long>(cout, ", "));
-	//cout << endl;
-
-	//vector<long> red(BFSseq(V,E));
-
-	//copy(red.begin(), red.end(), ostream_iterator<long>(cout, ", "));
+	//bool tt = v1 == v2;
+	//F(tt);
 
 	_log.close();
 	//char t = getchar();

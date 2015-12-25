@@ -14,12 +14,23 @@
 #include <queue>
 #include <ctime>
 #include <algorithm>
+#include <climits>
 #include "cuda_profiler_api.h"
 #define F(x) cout<<#x " = "<<x<<endl;
 
 using namespace std;
 
-ofstream _log1("inputArrayDebug.log");
+__device__  __managed__ bool done = true;
+__device__ __managed__  long iteration = 0;
+
+ofstream _log1("costArrayProvjeraDebug.log");
+
+__global__
+void postaviGlobalneLol(bool &done, long &iteration,bool vdone,long viter)
+{
+	done = vdone;
+	iteration = viter;
+}
 
 __global__
 void vectorAdd(const float *A, const float *B, float *C, int numElements)
@@ -56,6 +67,61 @@ void prazno(const long *V, long sizeV, const long*E, long sizeE, long *F, long*X
 		}
 	}
 	//printf("%d\n", i);
+}
+
+__global__
+void kernel_1(const long *V, long sizeV, const long*E, long sizeE, long*C)/*long *F, long*X, */
+{
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+	if (i < sizeV)
+	{
+		if (C[i] == iteration)
+		{
+			//if (done)
+			done = false;
+			long pozP = V[i],
+				pozK = i + 1 < sizeV ? V[i + 1] : sizeE;
+			for (long j = pozP; j < pozK; j++)
+			{
+				long susjed = E[j];
+				if (C[susjed]>iteration)
+					C[susjed] = iteration + 1;
+				//long j = C[susjed];
+			}
+		}
+	}
+}
+//void kernel_1_Share(const long *V, long sizeV, const long*E, long sizeE, long*C)/*long *F, long*X, */
+//{
+//	//bool lokalDone = done;
+//	long lokalIte = iteration;
+//	int i = blockDim.x * blockIdx.x + threadIdx.x;
+//	if (i < sizeV)
+//	{
+//		if (C[i] == lokalIte)
+//		{
+//			//if (done)
+//			//if (lokalDone)
+//				done = false;
+//			//int a = atomicAnd(&done, false);
+//			long pozP = V[i],
+//				pozK = i + 1 < sizeV ? V[i + 1] : sizeE;
+//			for (long j = pozP; j < pozK; j++)
+//			{
+//				long susjed = E[j];
+//				if (C[susjed]>lokalIte)
+//					C[susjed] = lokalIte + 1;
+//				//long j = C[susjed];
+//			}
+//		}
+//	}
+//
+//}
+
+__global__
+void BFSMainKernel(const long *V, long sizeV, const long *E, long sizeE)
+{
+
 }
 
 extern "C" void uhvatiNiz(long *niz, long size)
@@ -137,6 +203,100 @@ extern "C" double paralelniBFS(long *h_V, long *h_E, long sizeV, long sizeE)
 	//_log1  << endl << ": The time taken for paralel Breadth first search: " << diff << endl;
 	cout << endl << ": The time taken for paralel Breadth first search: " << diff << endl;
 	cout << endl << ": event: " << sec << " s\n";
+	cout << "Copy C to host\n";
+	cudaMemcpy(h_C, d_C, sizeV*sizeof(long), cudaMemcpyDeviceToHost);
+	_log1 << " ; " << endl;
+	copy(h_C, h_C + sizeV, ostream_iterator<long>(_log1, " "));
+	_log1 << endl;
+
+	cout << "Oslobadjanje memorije\n";
+	cudaFree(d_E);
+	cudaFree(d_V);
+	cudaFree(d_F);
+	cudaFree(d_X);
+	cudaFree(d_C);
+
+	free(h_F);
+	free(h_X);
+	free(h_C);
+
+	return sec;
+}
+
+extern "C" double paralelniBFS_64(long *h_V, long *h_E, long sizeV, long sizeE)
+{
+	cout << "paralelniBFS" << endl;
+
+	cout << "Alokacija host\n";
+	long *h_F(NULL), *h_X(NULL), *h_C(NULL);
+	h_F = (long*)malloc(sizeV*sizeof(long));
+	h_X = (long*)malloc(sizeV*sizeof(long));
+	h_C = (long*)malloc(sizeV*sizeof(long));
+	memset(h_F, 0, sizeV*sizeof(long));
+	memset(h_X, 0, sizeV*sizeof(long));
+	memset(h_C, 127, sizeV*sizeof(long));
+
+	//pocetne postavke za BFS
+	long pocetniCvor = 0;
+	h_F[pocetniCvor] = 1;
+	h_C[pocetniCvor] = 0;
+
+	//alokacija na device
+	cout << "Alokacija device\n";
+	long *d_E(NULL), *d_V(NULL),
+		*d_F(NULL), *d_X(NULL), *d_C(NULL);
+	cudaMalloc((void**)&d_E, sizeE*sizeof(long));
+	cudaMalloc((void**)&d_V, sizeV*sizeof(long));
+	cudaMalloc((void**)&d_F, sizeV*sizeof(long));
+	cudaMalloc((void**)&d_X, sizeV*sizeof(long));
+	cudaMalloc((void**)&d_C, sizeV*sizeof(long));
+
+	//kopiranje na device
+	cout << "Kopiranje na device\n";
+	cudaMemcpy(d_E, h_E, sizeE*sizeof(long), cudaMemcpyHostToDevice);
+	cudaMemcpy(d_V, h_V, sizeV*sizeof(long), cudaMemcpyHostToDevice);
+	cudaMemcpy(d_F, h_F, sizeV*sizeof(long), cudaMemcpyHostToDevice);
+	cudaMemcpy(d_X, h_X, sizeV*sizeof(long), cudaMemcpyHostToDevice);
+	cudaMemcpy(d_C, h_C, sizeV*sizeof(long), cudaMemcpyHostToDevice);
+
+
+	//potrebno za BFS
+	thrust::device_ptr<long> dev_ptr(d_F);
+	//bool paralelno = true, seq = false;
+	cudaEvent_t start, stop;
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
+	cudaDeviceSynchronize();
+
+	cout << "pocinje BFS paralelni\n";
+	clock_t p1;
+	p1 = clock();
+	cudaEventRecord(start);
+	while (thrust::reduce(dev_ptr, dev_ptr + sizeV))
+	{
+		//cout << "While petlja\n";
+		int m = 65;
+		int threadsPerBlock = m<sizeV ? m : sizeV;
+		int blocksPerGrid = (sizeV + threadsPerBlock - 1) / threadsPerBlock;
+		//printf("CUDA kernel launch with %d blocks of %d threads\n", blocksPerGrid, threadsPerBlock);
+
+		prazno << <blocksPerGrid, threadsPerBlock >> >(d_V, sizeV, d_E, sizeE, d_F, d_X, d_C);
+
+		//vectorAdd << <blocksPerGrid, threadsPerBlock >> >(d_A, d_B, d_C, numElements);
+		//break;
+		//cudaDeviceSynchronize();
+	}
+	cudaEventRecord(stop);
+	double diff = (double)(clock() - p1) / CLOCKS_PER_SEC;
+	//cudaDeviceSynchronize();
+	cudaEventSynchronize(stop);
+	float milliseconds = 0;
+	double sec;
+	cudaEventElapsedTime(&milliseconds, start, stop);
+	sec = milliseconds / 1000.0;
+	//_log1  << endl << ": The time taken for paralel Breadth first search: " << diff << endl;
+	cout << endl << ": The time taken for paralel Breadth first search: " << diff << endl;
+	cout << endl << ": event: " << sec << " s\n";
 	//cout << "Copy C to host\n";
 	//cudaMemcpy(h_C, d_C, sizeV*sizeof(long), cudaMemcpyDeviceToHost);
 	//copy(h_C, h_C + sizeV, ostream_iterator<long>(cout, ","));
@@ -157,170 +317,163 @@ extern "C" double paralelniBFS(long *h_V, long *h_E, long sizeV, long sizeE)
 }
 
 
-//int main()
+
+extern "C" double paralelniBFS_1(long *h_V, long *h_E, long sizeV, long sizeE)
+{
+	cout << "paralelniBFS" << endl;
+
+	cout << "Alokacija host\n";
+	long *h_F(NULL), *h_X(NULL), *h_C(NULL);
+	h_C = (long*)malloc(sizeV*sizeof(long));
+	memset(h_C, 127, sizeV*sizeof(long));
+
+	//pocetne postavke za BFS
+	long pocetniCvor = 0;
+	//h_F[pocetniCvor] = 1;
+	h_C[pocetniCvor] = 0;
+
+	//alokacija na device
+	cout << "Alokacija device\n";
+	long *d_E(NULL), *d_V(NULL),
+		*d_F(NULL), *d_X(NULL), *d_C(NULL);
+	cudaMalloc((void**)&d_E, sizeE*sizeof(long));
+	cudaMalloc((void**)&d_V, sizeV*sizeof(long));
+	cudaMalloc((void**)&d_C, sizeV*sizeof(long));
+
+	//kopiranje na device
+	cout << "Kopiranje na device\n";
+	cudaMemcpy(d_E, h_E, sizeE*sizeof(long), cudaMemcpyHostToDevice);
+	cudaMemcpy(d_V, h_V, sizeV*sizeof(long), cudaMemcpyHostToDevice);
+	cudaMemcpy(d_C, h_C, sizeV*sizeof(long), cudaMemcpyHostToDevice);
+
+
+	//potrebno za BFS
+	iteration = 0;
+	cudaEvent_t start, stop;
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
+	cudaDeviceSynchronize();
+
+	cout << "pocinje BFS paralelni\n";
+	clock_t p1;
+	p1 = clock();
+	cudaEventRecord(start);
+	do
+	{
+		done = true;
+		int threadsPerBlock = 256<sizeV ? 256 : sizeV;
+		int blocksPerGrid = (sizeV + threadsPerBlock - 1) / threadsPerBlock;
+		//printf("CUDA kernel launch with %d blocks of %d threads\n", blocksPerGrid, threadsPerBlock);
+
+		kernel_1 << <blocksPerGrid, threadsPerBlock >> >(d_V, sizeV, d_E, sizeE, d_C);
+		
+		cudaDeviceSynchronize();
+		iteration++;
+	} while (!done);
+	cudaEventRecord(stop);
+	double diff = (double)(clock() - p1) / CLOCKS_PER_SEC;
+	//cudaDeviceSynchronize();
+	cudaEventSynchronize(stop);
+	float milliseconds = 0;
+	double sec;
+	cudaEventElapsedTime(&milliseconds, start, stop);
+	sec = milliseconds / 1000.0;
+	//_log1  << endl << ": The time taken for paralel Breadth first search: " << diff << endl;
+	cout << endl << ": The time taken for paralel Breadth first search: " << diff << endl;
+	cout << endl << ": event: " << sec << " s\n";
+	cout << "Copy C to host\n";
+	cudaMemcpy(h_C, d_C, sizeV*sizeof(long), cudaMemcpyDeviceToHost);
+	_log1 << " ; "<< endl;
+	copy(h_C, h_C + sizeV, ostream_iterator<long>(_log1, " "));
+	_log1 <<  endl;
+
+	cout << "Oslobadjanje memorije\n";
+	cudaFree(d_E);
+	cudaFree(d_V);
+	cudaFree(d_C);
+
+	free(h_C);
+	cout << "done" << endl;
+	_log1.close();
+	return sec;
+}
+
+//extern "C" double paralelniBFS_1_Share(long *h_V, long *h_E, long sizeV, long sizeE)
 //{
-//	/*size_t N = 10;
-//	int *raw_ptr;
-//	cudaMalloc((void**)&raw_ptr,N*sizeof(int));
-//	thrust::device_ptr<int> dev_ptr(raw_ptr);
-//	thrust::fill(dev_ptr, dev_ptr + N, (int)1);
-//	int rez = thrust::reduce(dev_ptr, dev_ptr + N);
-//	F(rez);
-//	char t = getchar();
-//	*/
+//	cout << "paralelniBFS" << endl;
 //
-//	//input grafa
-//
-//	long *h_V(NULL), *h_E(NULL),// *d_V(NULL), *d_E(NULL),
-//		n(0), m(0);
-//
-//	//int *h_F(NULL), *h_X(NULL), *h_C(NULL);
-//
-//	size_t sizeV(0), sizeE(0);
-//
-//	cout << "Input grafa\n";
-//	//ifstream in("_input/simple.prs");
-//	////ifstream in("_input/ldoor.graph");
-//	//ifstream in("_input/audikw1.graph");
-//	ifstream in("_input/luxembourg.osm.graph");
-//	//ifstream in("_input/ecology1.graph");
-//	//ifstream in("input/kron_g500-simple-logn21.graph");
-//	string line;
-//	vector<long>tempV, tempE;
-//	bool flagUnm = false;
-//
-//	long brI = 0, brJ = 0;
-//	std::cout << "Input started: " << endl;
-//	while (getline(in, line))
-//	{
-//		if (line[0] == '%')
-//			continue;
-//
-//		if (!flagUnm)
-//		{
-//			flagUnm = true;
-//			vector<long> temp(strURedBrojeva(line));
-//			n = temp[0] + 1;
-//			m = temp[1] + 1;
-//
-//			//sizeV = n * sizeof(long);
-//			//sizeE = m * sizeof(long);
-//			tempV.reserve(n);
-//			tempE.reserve(m);
-//			tempV.push_back(0);
-//			brI++;
-//			//h_V[brI++] = 0;
-//			continue;
-//		}
-//		vector<long> temp = strURedBrojeva(line);
-//		for (long i = 0; i < temp.size(); i++)
-//		{
-//			tempE.push_back(temp[i]);
-//			brJ++;
-//		}
-//		if (tempV.size()<n)
-//			tempV.push_back(tempE.size());
-//	}
-//	if (n == 0 || m == 0)
-//	{
-//		cout << "Input prazan\n";
-//		cudaProfilerStop();
-//		return 0;
-//	}
-//	//return 0;
-//	sizeV = tempV.size()*sizeof(long); n = tempV.size();
-//	sizeE = tempE.size()*sizeof(long); m = tempE.size();
-//
-//	h_V = (long *)malloc(sizeV);
-//	std::copy(tempV.begin(), tempV.end(), h_V);
-//	tempV.clear();
-//
-//	h_E = (long *)malloc(sizeE);
-//	std::copy(tempE.begin(), tempE.end(), h_E);
-//	tempE.clear();
-//
-//	in.close();
-//	cout << "Input gotov" << endl;
-//
-//	//alokacija h_F, h_X i h_C
 //	cout << "Alokacija host\n";
 //	long *h_F(NULL), *h_X(NULL), *h_C(NULL);
-//	h_F = (long*)malloc(sizeV);
-//	h_X = (long*)malloc(sizeV);
-//	h_C = (long*)malloc(sizeV);
-//	memset(h_F, 0, sizeV);
-//	memset(h_X, 0, sizeV);
-//	memset(h_C, 127, sizeV);
+//	h_C = (long*)malloc(sizeV*sizeof(long));
+//	memset(h_C, 127, sizeV*sizeof(long));
 //
 //	//pocetne postavke za BFS
 //	long pocetniCvor = 0;
-//	h_F[pocetniCvor] = 1;
+//	//h_F[pocetniCvor] = 1;
 //	h_C[pocetniCvor] = 0;
 //
 //	//alokacija na device
 //	cout << "Alokacija device\n";
 //	long *d_E(NULL), *d_V(NULL),
 //		*d_F(NULL), *d_X(NULL), *d_C(NULL);
-//	cudaMalloc((void**)&d_E, sizeE);
-//	cudaMalloc((void**)&d_V, sizeV);
-//	cudaMalloc((void**)&d_F, sizeV);
-//	cudaMalloc((void**)&d_X, sizeV);
-//	cudaMalloc((void**)&d_C, sizeV);
-//
+//	cudaMalloc((void**)&d_E, sizeE*sizeof(long));
+//	cudaMalloc((void**)&d_V, sizeV*sizeof(long));
+//	cudaMalloc((void**)&d_C, sizeV*sizeof(long));
 //
 //	//kopiranje na device
 //	cout << "Kopiranje na device\n";
-//	cudaMemcpy(d_E, h_E, sizeE, cudaMemcpyHostToDevice);
-//	cudaMemcpy(d_V, h_V, sizeV, cudaMemcpyHostToDevice);
-//	cudaMemcpy(d_F, h_F, sizeV, cudaMemcpyHostToDevice);
-//	cudaMemcpy(d_X, h_X, sizeV, cudaMemcpyHostToDevice);
-//	cudaMemcpy(d_C, h_C, sizeV, cudaMemcpyHostToDevice);
+//	cudaMemcpy(d_E, h_E, sizeE*sizeof(long), cudaMemcpyHostToDevice);
+//	cudaMemcpy(d_V, h_V, sizeV*sizeof(long), cudaMemcpyHostToDevice);
+//	cudaMemcpy(d_C, h_C, sizeV*sizeof(long), cudaMemcpyHostToDevice);
+//
 //
 //	//potrebno za BFS
-//	thrust::device_ptr<long> dev_ptr(d_F);
-//	bool paralelno = true, seq = false;
+//	iteration = 0;
+//	cudaEvent_t start, stop;
+//	cudaEventCreate(&start);
+//	cudaEventCreate(&stop);
 //	cudaDeviceSynchronize();
-//	if (paralelno)
+//
+//	cout << "pocinje BFS paralelni\n";
+//	clock_t p1;
+//	p1 = clock();
+//	cudaEventRecord(start);
+//	do
 //	{
-//		cout << "pocinje BFS paralelni\n";
-//		clock_t p1;
-//		p1 = clock();
-//		while (thrust::reduce(dev_ptr, dev_ptr + n))
-//		{
-//			//cout << "While petlja\n";
-//			int threadsPerBlock = 256<n ? 256 : n;
-//			int blocksPerGrid = (n + threadsPerBlock - 1) / threadsPerBlock;
-//			//printf("CUDA kernel launch with %d blocks of %d threads\n", blocksPerGrid, threadsPerBlock);
-//
-//			prazno << <blocksPerGrid, threadsPerBlock >> >(d_V, sizeV, d_E, sizeE, d_F, d_X, d_C);
-//			//vectorAdd << <blocksPerGrid, threadsPerBlock >> >(d_A, d_B, d_C, numElements);
-//
-//			//break;
-//			//cudaDeviceSynchronize();
-//		}
+//		done = true;
+//		int threadsPerBlock = 256<sizeV ? 256 : sizeV;
+//		int blocksPerGrid = (sizeV + threadsPerBlock - 1) / threadsPerBlock;
+//		//printf("CUDA kernel launch with %d blocks of %d threads\n", blocksPerGrid, threadsPerBlock);
+//		//kernel_1_Share<< <blocksPerGrid,threadsPerBlock> >>(d_V, sizeV, d_E, sizeE, d_C);
+//		//kernel_1_Share << <blocksPerGrid, threadsPerBlock >> >(d_V, sizeV, d_E, sizeE, d_C);
+//		
 //		cudaDeviceSynchronize();
-//		double diff = (double)(clock() - p1) / CLOCKS_PER_SEC;
-//		cout << endl << ": The time taken for paralel Breadth first search: " << diff << endl;
-//		//cout << "Copy C to host\n";
-//		//cudaMemcpy(h_C, d_C, sizeV, cudaMemcpyDeviceToHost);
-//		//copy(h_C, h_C + n, ostream_iterator<long>(cout, ","));
-//	}
-//	cout << "\nOslobadjanje host\n";
-//	free(h_E);
-//	free(h_V);
-//	free(h_F);
-//	free(h_X);
-//	free(h_C);
+//		iteration++;
+//	} while (!done);
+//	cudaEventRecord(stop);
+//	double diff = (double)(clock() - p1) / CLOCKS_PER_SEC;
+//	//cudaDeviceSynchronize();
+//	cudaEventSynchronize(stop);
+//	float milliseconds = 0;
+//	double sec;
+//	cudaEventElapsedTime(&milliseconds, start, stop);
+//	sec = milliseconds / 1000.0;
+//	//_log1  << endl << ": The time taken for paralel Breadth first search: " << diff << endl;
+//	cout << endl << ": The time taken for paralel Breadth first search: " << diff << endl;
+//	cout << endl << ": event: " << sec << " s\n";
+//	cout << "Copy C to host\n";
+//	cudaMemcpy(h_C, d_C, sizeV*sizeof(long), cudaMemcpyDeviceToHost);
+//	_log1 << " ; "<< endl;
+//	copy(h_C, h_C + sizeV, ostream_iterator<long>(_log1, " "));
+//	_log1 <<  endl;
 //
-//	cout << "Oslobadjanje device\n";
+//	cout << "Oslobadjanje memorije\n";
 //	cudaFree(d_E);
 //	cudaFree(d_V);
-//	cudaFree(d_F);
-//	cudaFree(d_X);
 //	cudaFree(d_C);
-//	cout << "\nDone!!!!!!!!!!!!!" << endl;
-//	//char t = getchar();
-//	cudaProfilerStop();
-//	return 0;
+//
+//	free(h_C);
+//	cout << "done" << endl;
+//	_log1.close();
+//	return sec;
 //}
-

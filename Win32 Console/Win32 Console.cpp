@@ -2,210 +2,257 @@
 //
 
 #include "stdafx.h"
+#include <cstdio>
+#include <cstdlib>
 #include <iostream>
-#include <fstream>
+#include <filesystem>
 #include <string>
+#include <vector>
 #include <iterator>
 #include <algorithm>
-#include <vector>
+#include <ctime>
+#include <cstring>
+#include <numeric>
 #include <cmath>
 #include <queue>
-#include <ctime>
-//#include <boost/progress.hpp>
-#define F(x) out<<#x" = "<<x<<endl;
-#define FF(x) cout<<#x" = "<<x<<endl;
-#define FFC(x) copy(x.begin(),x.end(),ostream_iterator<long>(cout,","));cout<<endl;
+
+#include "tinydir.h"
+
+#define TEST_STR "Input//simple.prs"
+#define F(x) cout<< #x " = "<<x<<"\n";
+//#define FL(x) _log<<" "#x " = "<<x<<" ";
+#define FI 0.0001
+const int BR_PONAVLJANJA = 10;
 
 using namespace std;
 
-long strToBr(string line)
+string fileName = "seqIntelReleasev1.log";
+ofstream _log;// (fileName);
+
+using namespace std;
+
+inline void parseA(string &line, long *E, long&sizeE)
 {
-	long br = 0;
-	long size = line.size();
-	//F(size);
-	//F(pow(10, 3));
-	for (long i = 0; i < line.size(); i++)
+	char * temp = new char[line.length() + 1];
+	std::strcpy(temp, line.c_str());
+	char * pch = strtok(temp, " ");
+	std::string::size_type sz;
+	while (pch != NULL)
 	{
-		char a = line[i];
-		a -= '0';
-		//F((long)a);
-		br += a*pow(10, size-1);
-		size--;
+		//rezB.push_back(atol(pch) - 1);
+		E[sizeE] = atol(pch) - 1;
+		sizeE++;
+		pch = strtok(NULL, " ");
 	}
-	//F(br);
-	br--;
-	return br;
+	delete[] temp;
 }
 
-vector<string> token(string line)
+inline void dodajUNiz(long *V, long &sizeV, long sizeE, long n)
 {
-	vector<string>tempNiz;
-	string temp = "";
-	for (long i = 0; i < line.size(); i++)
+	if (sizeV < n)
 	{
-		if (line[i] == ' ')
+		V[sizeV] = sizeE;
+		sizeV++;
+	}
+}
+
+inline bool parse2(const string &line, vector<long>&rezB)
+{
+	char * temp = new char[line.length() + 1];
+	std::strcpy(temp, line.c_str());
+	char * pch = strtok(temp, " ");
+	std::string::size_type sz;
+	while (pch != NULL)
+	{
+		rezB.push_back(atol(pch) - 1);
+		pch = strtok(NULL, " ");
+	}
+	delete[] temp;
+	return 0;
+}
+
+double inputAVE(const string&path, long **V, long**E, long &sizeV, long &sizeE)
+{
+	//_log << "inputAVE: " << path;// >> endl;
+	ifstream in(path);
+
+	long n(0), m(0);
+	bool nNM = true;
+
+	clock_t t0;
+	if (in.is_open())
+	{
+		cout << path << " is open\n";
+		string line = "";
+		t0 = clock();
+		while (getline(in, line))
 		{
-			tempNiz.push_back(temp);
-			temp = "";
-			continue;
+			if (in.bad())
+				break;
+			if (line[0] == '%')
+				continue;
+
+			if (nNM)
+			{
+				vector<long>rezB;
+				parse2(line, rezB);
+				n = rezB[0] + 1;
+				m = rezB[1] + 1;
+				_log << n << ";" << m << ";BFSAVEseq;";
+				//FL(n);
+				//FL(m);
+				//FL(double(m / n));
+				*V = (long*)malloc(n*sizeof(long));
+				*E = (long*)malloc((2 * m + 10)*sizeof(long));
+				//sizeV = n;
+				//sizeE = 2 * m + 10;
+				nNM = false;
+				//memset(niz, 0, size*sizeof(int));
+				memset(*V, 0, n*sizeof(long));
+				memset(*E, 0, 2 * m*sizeof(long));
+				sizeV++;
+				continue;
+				//break;
+			}
+
+			parseA(line, *E, sizeE);
+
+			dodajUNiz(*V, sizeV, sizeE, n);
+
 		}
-		temp += line[i];
+
+		double diff = (double)(clock() - t0) / CLOCKS_PER_SEC;
+		//FL(n); FL(m);
+		//_log << " " << diff << " \n";
+		in.close();
+		return diff;
 	}
-	//if (temp != "")
-		tempNiz.push_back(temp);
-	return tempNiz;
+	return -1;
 }
 
-vector<long> strURedBrojeva(string line)
+double BFSAVEseq(const long *V, const long *E, const long sizeV, const long sizeE)
 {
-	vector<long>rez;
-	vector<string>temp = token(line);
-	for (long i = 0; i < temp.size(); i++)
+	vector<bool> dodaniURed(sizeV, false);
+	vector<bool> posjecenCvor(sizeV, false);
+	vector<long>redoslijed;
+	queue<long>redCvorova;
+
+	long pocetniCvor = 0;
+	redCvorova.push(pocetniCvor);
+	dodaniURed[pocetniCvor] = true;
+	//redoslijed.push_back(pocetniCvor);
+
+	long brPosjecenih = 0;
+	clock_t t1 = clock();
+	while (redCvorova.size()>0 && brPosjecenih<sizeV)
 	{
-		//if (temp[i] != "")
-		int br = strToBr(temp[i]);
-		if(br>=0)	rez.push_back(br);
+		long trenutniCvor = redCvorova.front();
+		redCvorova.pop();
+
+		if (posjecenCvor[trenutniCvor])
+			continue;
+
+		brPosjecenih++;
+		posjecenCvor[trenutniCvor] = true;
+		redoslijed.push_back(trenutniCvor);
+
+		long pozP = V[trenutniCvor],
+			pozK = trenutniCvor + 1 < sizeV ? V[trenutniCvor + 1] : sizeE;
+		//F(pozP);
+		//F(pozK);
+		for (int i = pozP; i < pozK; i++)
+		{
+			long susjed = E[i];
+
+			if (posjecenCvor[susjed] || dodaniURed[susjed])
+			{
+				continue;
+			}
+
+			redCvorova.push(susjed);
+			dodaniURed[susjed] = true;
+		}
 	}
-	return rez;
+	double diff = (double)(clock() - t1) / CLOCKS_PER_SEC;
+	//_log << "\nBFSAVEseq: " << diff << endl;
+	cout << endl << ": The time taken for seq Breadth first search: " << diff << endl;
+	//cout << "\nBFSAVEseq: ";
+	//copy(redoslijed.begin(), redoslijed.end(), ostream_iterator<long>(cout, ", "));
+
+	return diff;
+
+}
+
+bool testPoredjenje(vector<string>&putanje)
+{
+	for (int k = 0; k < BR_PONAVLJANJA; k++)
+	{
+		for (int i = 0; i < putanje.size(); i++)
+		{
+			//F(k);
+			long *h_V(NULL), *h_E(NULL), sizeE(0), sizeV(0);
+			cout << "inputAVE\n";
+			_log << putanje[i] << ";";
+			inputAVE(putanje[i], &h_V, &h_E, sizeV, sizeE);
+			double _vrijeme = (BFSAVEseq(h_V, h_E, sizeV, sizeE));
+			//vrijeme.push_back(_vrijeme);
+			_log << _vrijeme << endl;
+			free(h_V);
+			free(h_E);
+		}
+	}
+	return 0;
+
+}
+
+bool putanjeGrafova(vector<string>&putanje)
+{
+	tinydir_dir dir;
+	bool fail = true;
+	if (tinydir_open(&dir, "Input") != 1)
+	{
+		while (dir.has_next)
+		{
+			tinydir_file file;
+
+			if (tinydir_readfile(&dir, &file) == -1)
+			{
+				fail = true;
+				break;
+			}
+
+			if (!file.is_dir)
+				putanje.push_back(file.path);
+
+			tinydir_next(&dir);
+			fail = false;
+		}
+	}
+	tinydir_close(&dir);
+	return fail;
 }
 
 int _tmain()
 {
-	cout << sizeof(float) << endl;
-	system("pause");
+	std::time_t result = std::time(nullptr);
+	std::string s = std::to_string(result);
+
+	fileName = s + fileName;
+
+	_log = ofstream(fileName);
+	_log << "graf;n;m;algoritam;vrijeme" << endl;
+
+	vector<string>putanje;
+	if (putanjeGrafova(putanje))
+	{
+		cerr << "problemi\n";
+		exit(EXIT_FAILURE);
+	}
+	copy(putanje.begin(), putanje.end(), ostream_iterator<string>(cout, ", "));
+	cout << "\n\nOtvoriti sve iz input foldera\n";
+
+	testPoredjenje(putanje);
+
+	//system("pause");
 	return 0;
 }
-
-//int _tmain(int argc, _TCHAR* argv[])
-//{
-//	//ofstream out("test.out");
-//	//out << "test" << endl;
-//	//out.close();
-//	//vector<vector<long> >graf;
-//	ifstream in("simple.graph");
-//	//ifstream in("luxembourg.osm.graph");
-//	//ifstream in("ecology1.graph");
-//	//ifstream in("ecology2.graph");
-//	//ifstream in("af_shell9.graph");
-//	//ifstream in("af_shell10.graph");
-//	//ifstream in("audikw1.graph");
-//	//ifstream in("ldoor.graph");
-//	//
-//	//ifstream in("kron_g500-simple-logn21.graph");
-//	//
-//	//ofstream out("big2.log");
-//	long n=0, m=0;
-//	bool flagUnm = false;
-//	//in >> n >> m;
-//
-//	queue<long>redCvorova;
-//	vector<bool>posjecenCvor;
-//	vector<bool>dodanURedCvor;
-//	vector<int>redoslijed;
-//
-//	//for (long i = 0; i < n+1; i++)
-//	//{
-//	//	//F(i);
-//	//	string line;
-//	//	std::getline(in, line);
-//	//	if (line.size() == 0)
-//	//		continue;
-//	//	graf.push_back(strURedBrojeva(line));
-//	//	posjecenCvor.push_back(false);
-//	//	dodanURedCvor.push_back(false);
-//	//}
-//	string line="";
-//	clock_t t0;
-//	t0 = clock();
-//	while (getline(in, line))
-//	{
-//		//FF(line);
-//		if (line[0] == '%')
-//			continue;
-//		//FF(line);
-//		if (!flagUnm)
-//		{
-//			vector<long> temp(strURedBrojeva(line));
-//			//FFC(temp);
-//			n = temp[0]+1;
-//			m = temp[1]+1;
-//			flagUnm = true;
-//			FF(n);
-//			FF(m);
-//			graf.reserve(n);
-//			continue;
-//		}
-//		//if (graf.size() % 5000 == 0)
-//		//{
-//		//	FF(graf.size());
-//		//	//FF(line);
-//		//}
-//		graf.push_back(strURedBrojeva(line));
-//		//posjecenCvor.push_back(false);
-//		//dodanURedCvor.push_back(false);
-//	}
-//	in.close();
-//	double diff0 = (double)(clock() - t0) / CLOCKS_PER_SEC;
-//	cout << endl << "input: " << diff0 << endl;
-//	posjecenCvor.resize(n, false);
-//	dodanURedCvor.resize(n, false);
-//	//cout << "Ispis grafa: " << endl;
-//	//for (int i = 0; i < graf.size(); i++)
-//	//{
-//	//	out << "Cvor " << i << ": ";
-//	//	copy(graf[i].begin(), graf[i].end(), ostream_iterator<int>(out, ","));
-//	//	
-//	//	out << endl;
-//	//}
-//	for (int brIzvrsavanja = 1; brIzvrsavanja<=6; brIzvrsavanja++)
-//	{
-//		std::fill(posjecenCvor.begin(), posjecenCvor.end(), false);
-//		std::fill(dodanURedCvor.begin(), dodanURedCvor.end(), false);
-//		//redCvorova.
-//	cout << "BFS pocinje" << endl;
-//	redCvorova.push(0);
-//	dodanURedCvor[0] = true;
-//	clock_t t1;
-//	t1 = clock();
-//	long brPosjecenih = 0;
-//	while (redCvorova.size() > 0&& brPosjecenih<n)
-//	{
-//		//F(brPosjecenih);
-//		//F(redCvorova.size());
-//		long trenutniCvor = redCvorova.front();		
-//		redCvorova.pop();
-//		brPosjecenih++;
-//		
-//		if (posjecenCvor[trenutniCvor])
-//			continue;
-//		//redoslijed.push_back(trenutniCvor);
-//		posjecenCvor[trenutniCvor] = true;
-//
-//		for (int i = 0; i < graf[trenutniCvor].size(); i++)
-//		{
-//			//F(graf[trenutniCvor][i]);
-//			if (graf[trenutniCvor][i] == -1)
-//				continue;
-//			if (posjecenCvor[graf[trenutniCvor][i]] || dodanURedCvor[graf[trenutniCvor][i]])
-//				continue;
-//			redCvorova.push(graf[trenutniCvor][i]);
-//			dodanURedCvor[graf[trenutniCvor][i]] = true;
-//		}		
-//	}
-//	double diff = (double)(clock() - t1) / CLOCKS_PER_SEC;
-//	cout << endl << brIzvrsavanja<<": The time taken for Breadth first search: " << diff << endl;
-//	//brIzvrsavanja++;
-//	}
-//
-//	//out << "Br neposjecenih: "<<count(posjecenCvor.begin(), posjecenCvor.end(), false) << endl;
-//	//out << "raspored: " << endl;
-//	//cout << "raspored: " << endl;
-//	////for (int i = 0; i < redoslijed.size(); i++)
-//	////	redoslijed[i]++;
-//	//copy(redoslijed.begin(), redoslijed.end(), ostream_iterator<int>(out, ","));
-//	//copy(redoslijed.begin(), redoslijed.end(), ostream_iterator<int>(cout, ","));
-//	
-//	system("pause");
-//	return 0;
-//}
-

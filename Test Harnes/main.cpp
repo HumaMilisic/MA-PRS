@@ -24,7 +24,7 @@
 #define F(x) cout<< #x " = "<<x<<"\n";
 #define FL(x) _log<<" "#x " = "<<x<<" ";
 #define FI 0.0001
-const int BR_PONAVLJANJA = 1;
+const int BR_PONAVLJANJA = 10;
 
 using namespace std;
 
@@ -35,7 +35,10 @@ extern "C" bool runTest();
 extern "C" double paralelniBFS(long *h_V, long*h_E, long sizeV, long sizeE);
 extern "C" double paralelniBFS_64(long *h_V, long *h_E, long sizeV, long sizeE);
 extern "C" double paralelniBFS_1(long *h_V, long *h_E, long sizeV, long sizeE);
-//extern "C" double paralelniBFS_1_Share(long *h_V, long *h_E, long sizeV, long sizeE);
+extern "C" double paralelniBFS_1_Share(long *h_V, long *h_E, long sizeV, long sizeE);
+extern "C" double paralelniBFSEdge(long *h_V, long *h_E, long sizeV, long sizeE);
+extern "C" double paralelniBFS_1_Edge(long *h_V, long *h_E, long sizeV, long sizeE);
+extern "C" double paralelniBFS_1_ShareAtomics(long *h_V, long *h_E, long sizeV, long sizeE);
 
 int iOfSmallest(vector<double>&niz)
 {
@@ -965,22 +968,7 @@ bool testPoredjenje(vector<string>&putanje)
 		//	free(h_V);
 		//	free(h_E);
 		//}
-		//extern "C" double paralelniBFS_1(long *h_V, long *h_E, long sizeV, long sizeE)
-		for (int i = 0; i < putanje.size(); i++)
-		{
 
-			long *h_V(NULL), *h_E(NULL), sizeE(0), sizeV(0);
-			cout << "inputAVE\n";
-			_log << putanje[i] << ";";
-			inputAVE(putanje[i], &h_V, &h_E, sizeV, sizeE);
-
-			F(k);
-			double v = (paralelniBFS_1(h_V, h_E, sizeV, sizeE));
-			_log << "paralelniBFS_1;" << v << endl;
-
-			free(h_V);
-			free(h_E);
-		}
 		//for (int i = 0; i < putanje.size(); i++)
 		//{
 
@@ -990,8 +978,71 @@ bool testPoredjenje(vector<string>&putanje)
 		//	inputAVE(putanje[i], &h_V, &h_E, sizeV, sizeE);
 
 		//	F(k);
-		//	double v = (paralelniBFS_1_Share(h_V, h_E, sizeV, sizeE));
-		//	_log << "paralelniBFS_1_Share;" << v << endl;
+		//	double v = (paralelniBFS_1(h_V, h_E, sizeV, sizeE));
+		//	_log << "paralelniBFS_1;" << v << endl;
+
+		//	free(h_V);
+		//	free(h_E);
+		//}
+		for (int i = 0; i < putanje.size(); i++)
+		{
+
+			long *h_V(NULL), *h_E(NULL), sizeE(0), sizeV(0);
+			cout << "inputAVE\n";
+			_log << putanje[i] << ";";
+			inputAVE(putanje[i], &h_V, &h_E, sizeV, sizeE);
+
+			F(k);
+			double v = (paralelniBFS_1_Share(h_V, h_E, sizeV, sizeE));
+			_log << "paralelniBFS_1_Share;" << v << endl;
+
+			free(h_V);
+			free(h_E);
+		}
+		//extern "C" double paralelniBFS_1_ShareAtomics(long *h_V, long *h_E, long sizeV, long sizeE);
+		//for (int i = 0; i < putanje.size(); i++)
+		//{
+
+		//	long *h_V(NULL), *h_E(NULL), sizeE(0), sizeV(0);
+		//	cout << "inputAVE\n";
+		//	_log << putanje[i] << ";";
+		//	inputAVE(putanje[i], &h_V, &h_E, sizeV, sizeE);
+
+		//	F(k);
+		//	double v = (paralelniBFS_1_ShareAtomics(h_V, h_E, sizeV, sizeE));
+		//	_log << "paralelniBFS_1_ShareAtomics;" << v << endl;
+
+		//	free(h_V);
+		//	free(h_E);
+		//}
+		//nopeee
+		//for (int i = 0; i < putanje.size(); i++)
+		//{
+
+		//	long *h_V(NULL), *h_E(NULL), sizeE(0), sizeV(0);
+		//	cout << "inputAVE\n";
+		//	_log << putanje[i] << ";";
+		//	inputAVE(putanje[i], &h_V, &h_E, sizeV, sizeE);
+
+		//	F(k);
+		//	double v = (paralelniBFSEdge(h_V, h_E, sizeV, sizeE));
+		//	_log << "paralelniBFSEdge;" << v << endl;
+
+		//	free(h_V);
+		//	free(h_E);
+		//}
+		//extern "C" double paralelniBFS_1_Edge(long *h_V, long *h_E, long sizeV, long sizeE)
+		//for (int i = 0; i < putanje.size(); i++)
+		//{
+
+		//	long *h_V(NULL), *h_E(NULL), sizeE(0), sizeV(0);
+		//	cout << "inputAVE\n";
+		//	_log << putanje[i] << ";";
+		//	inputAVE(putanje[i], &h_V, &h_E, sizeV, sizeE);
+
+		//	F(k);
+		//	double v = (paralelniBFS_1_Edge(h_V, h_E, sizeV, sizeE));
+		//	_log << "paralelniBFS_1_Edge;" << v << endl;
 
 		//	free(h_V);
 		//	free(h_E);
@@ -1023,7 +1074,7 @@ int main()
 	std::time_t result = std::time(nullptr);
 	std::string s = std::to_string(result);
 
-	string fileName = s + "paralelReleasev1.log";
+	string fileName = s + "paralelReleasev3.log";
 	_log = ofstream(fileName);
 	_log << "graf;n;m;algoritam;vrijeme" << endl;
 	vector<string>putanje;

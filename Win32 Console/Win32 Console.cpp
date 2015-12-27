@@ -26,7 +26,7 @@ const int BR_PONAVLJANJA = 10;
 
 using namespace std;
 
-string fileName = "seqIntelReleasev1.log";
+string fileName = "seqIntelReleasev2[avx2,O3,oi].log";
 ofstream _log;// (fileName);
 
 using namespace std;

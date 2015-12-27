@@ -67,6 +67,9 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
       <Cpp0xSupport>true</Cpp0xSupport>
+      <Optimization>MaxSpeedHighLevel</Optimization>
+      <GenerateAlternateCodePaths>AVX2</GenerateAlternateCodePaths>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -77,6 +80,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <Text Include="1451128547seqIntelReleasev2[avx2,o1].log" />
+    <Text Include="1451131405seqIntelReleasev2[avx2,o2].log" />
+    <Text Include="1451134055seqIntelReleasev2[avx2,Ox].log" />
+    <Text Include="1451136650seqIntelReleasev2[avx2,O3].log" />
+    <Text Include="1451139495seqIntelReleasev2[avx2,O3,oi].log" />
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
@@ -95,6 +103,37 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Input\af_shell10.graph" />
+    <None Include="Input\af_shell9.graph" />
+    <None Include="Input\asia.osm.graph" />
+    <None Include="Input\audikw1.graph" />
+    <None Include="Input\belgium.osm.graph" />
+    <None Include="Input\ecology1.graph" />
+    <None Include="Input\ecology2.graph" />
+    <None Include="Input\europe.osm.graph" />
+    <None Include="Input\germany.osm.graph" />
+    <None Include="Input\kron_g500-simple-logn16.graph" />
+    <None Include="Input\kron_g500-simple-logn21.graph" />
+    <None Include="Input\ldoor.graph" />
+    <None Include="Input\luxembourg.osm.graph" />
+    <None Include="Input\nlpkkt120.graph" />
+    <None Include="Input\nlpkkt160.graph" />
+    <None Include="Input\rgg_n_2_15_s0.graph" />
+    <None Include="Input\vsp_barth5_1Ksep_50in_5Kout.graph" />
+    <None Include="Input\vsp_bcsstk30_500sep_10in_1Kout.graph" />
+    <None Include="Input\vsp_befref_fxm_2_4_air02.graph" />
+    <None Include="Input\vsp_bump2_e18_aa01_model1_crew1.graph" />
+    <None Include="Input\vsp_c-30_data_data.graph" />
+    <None Include="Input\vsp_c-60_data_cti_cs4.graph" />
+    <None Include="Input\vsp_data_and_seymourl.graph" />
+    <None Include="Input\vsp_finan512_scagr7-2c_rlfddd.graph" />
+    <None Include="Input\vsp_mod2_pgp2_slptsk.graph" />
+    <None Include="Input\vsp_model1_crew1_cr42_south31.graph" />
+    <None Include="Input\vsp_msc10848_300sep_100in_1Kout.graph" />
+    <None Include="Input\vsp_p0291_seymourl_iiasa.graph" />
+    <None Include="Input\vsp_sctap1-2b_and_seymourl.graph" />
+    <None Include="Input\vsp_south31_slptsk.graph" />
+    <None Include="Input\vsp_vibrobox_scagr7-2c_rlfddd.graph" />
     <None Include="simple.graph" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

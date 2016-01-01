@@ -23,7 +23,7 @@
 using namespace std;
 
 
-ofstream _log1("costArrayProvjeraDebug.log");
+ofstream _log1("costArrayProvjeraDebugOOO.log");
 
 
 
@@ -81,6 +81,7 @@ extern "C" double paralelniBFS(long *h_V, long *h_E, long sizeV, long sizeE)
 	cout << "pocinje BFS paralelni\n";
 	clock_t p1;
 	p1 = clock();
+	cudaProfilerStart();
 	cudaEventRecord(start);
 	while (thrust::reduce(dev_ptr, dev_ptr + sizeV))
 	{
@@ -96,6 +97,8 @@ extern "C" double paralelniBFS(long *h_V, long *h_E, long sizeV, long sizeE)
 		//cudaDeviceSynchronize();
 	}
 	cudaEventRecord(stop);
+	cudaDeviceSynchronize();
+	cudaProfilerStop();
 	double diff = (double)(clock() - p1) / CLOCKS_PER_SEC;
 	//cudaDeviceSynchronize();
 	cudaEventSynchronize(stop);
@@ -122,7 +125,8 @@ extern "C" double paralelniBFS(long *h_V, long *h_E, long sizeV, long sizeE)
 	free(h_F);
 	free(h_X);
 	free(h_C);
-
+	cudaDeviceSynchronize();
+	
 	return sec;
 }
 
@@ -259,6 +263,7 @@ extern "C" double paralelniBFS_1(long *h_V, long *h_E, long sizeV, long sizeE)
 	cout << "pocinje BFS paralelni\n";
 	clock_t p1;
 	p1 = clock();
+	cudaProfilerStart();
 	cudaEventRecord(start);
 	do
 	{
@@ -273,6 +278,8 @@ extern "C" double paralelniBFS_1(long *h_V, long *h_E, long sizeV, long sizeE)
 		iteration++;
 	} while (!done);
 	cudaEventRecord(stop);
+	cudaDeviceSynchronize();
+	cudaProfilerStop();
 	double diff = (double)(clock() - p1) / CLOCKS_PER_SEC;
 	//cudaDeviceSynchronize();
 	cudaEventSynchronize(stop);
@@ -285,9 +292,10 @@ extern "C" double paralelniBFS_1(long *h_V, long *h_E, long sizeV, long sizeE)
 	cout << endl << ": event: " << sec << " s\n";
 	cout << "Copy C to host\n";
 	cudaMemcpy(h_C, d_C, sizeV*sizeof(long), cudaMemcpyDeviceToHost);
-	_log1 << " ; "<< endl;
-	copy(h_C, h_C + sizeV, ostream_iterator<long>(_log1, " "));
-	_log1 <<  endl;
+	_log1 << diff << ";" << sec << endl;
+	//_log1 << " ; "<< endl;
+	//copy(h_C, h_C + sizeV, ostream_iterator<long>(_log1, " "));
+	//_log1 <<  endl;
 
 	cout << "Oslobadjanje memorije\n";
 	cudaFree(d_E);
@@ -302,6 +310,8 @@ extern "C" double paralelniBFS_1(long *h_V, long *h_E, long sizeV, long sizeE)
 
 extern "C" double paralelniBFS_1_Share(long *h_V, long *h_E, long sizeV, long sizeE)
 {
+
+	
 	cout << "paralelniBFS" << endl;
 
 	cout << "Alokacija host\n";
@@ -338,6 +348,7 @@ extern "C" double paralelniBFS_1_Share(long *h_V, long *h_E, long sizeV, long si
 	cout << "pocinje BFS paralelni\n";
 	clock_t p1;
 	p1 = clock();
+	cudaProfilerStart();
 	cudaEventRecord(start);
 	do
 	{
@@ -351,8 +362,10 @@ extern "C" double paralelniBFS_1_Share(long *h_V, long *h_E, long sizeV, long si
 		
 		cudaDeviceSynchronize();
 		iteration++;
-	} while (!doneI);
+	} while (!done);
 	cudaEventRecord(stop);
+	cudaDeviceSynchronize();
+	cudaProfilerStop();
 	double diff = (double)(clock() - p1) / CLOCKS_PER_SEC;
 	//cudaDeviceSynchronize();
 	cudaEventSynchronize(stop);
@@ -363,11 +376,11 @@ extern "C" double paralelniBFS_1_Share(long *h_V, long *h_E, long sizeV, long si
 	//_log1  << endl << ": The time taken for paralel Breadth first search: " << diff << endl;
 	cout << endl << ": The time taken for paralel Breadth first search: " << diff << endl;
 	cout << endl << ": event: " << sec << " s\n";
-	cout << "Copy C to host\n";
-	cudaMemcpy(h_C, d_C, sizeV*sizeof(long), cudaMemcpyDeviceToHost);
-	_log1 << " ; "<< endl;
-	copy(h_C, h_C + sizeV, ostream_iterator<long>(_log1, " "));
-	_log1 <<  endl;
+	//cout << "Copy C to host\n";
+	//cudaMemcpy(h_C, d_C, sizeV*sizeof(long), cudaMemcpyDeviceToHost);
+	//_log1 << " ; "<< endl;
+	//copy(h_C, h_C + sizeV, ostream_iterator<long>(_log1, " "));
+	//_log1 <<  endl;
 
 	cout << "Oslobadjanje memorije\n";
 	cudaFree(d_E);
@@ -377,6 +390,7 @@ extern "C" double paralelniBFS_1_Share(long *h_V, long *h_E, long sizeV, long si
 	free(h_C);
 	cout << "done" << endl;
 	_log1.close();
+	
 	return sec;
 }
 
@@ -602,6 +616,86 @@ extern "C" double paralelniBFS_1_Edge(long *h_V, long *h_E, long sizeV, long siz
 		cudaDeviceSynchronize();
 		iteration++;
 	} while (!done);
+	cudaEventRecord(stop);
+	double diff = (double)(clock() - p1) / CLOCKS_PER_SEC;
+	//cudaDeviceSynchronize();
+	cudaEventSynchronize(stop);
+	float milliseconds = 0;
+	double sec;
+	cudaEventElapsedTime(&milliseconds, start, stop);
+	sec = milliseconds / 1000.0;
+	//_log1  << endl << ": The time taken for paralel Breadth first search: " << diff << endl;
+	cout << endl << ": The time taken for paralel Breadth first search: " << diff << endl;
+	cout << endl << ": event: " << sec << " s\n";
+	cout << "Copy C to host\n";
+	cudaMemcpy(h_C, d_C, sizeV*sizeof(long), cudaMemcpyDeviceToHost);
+	_log1 << " ; " << endl;
+	copy(h_C, h_C + sizeV, ostream_iterator<long>(_log1, " "));
+	_log1 << endl;
+
+	cout << "Oslobadjanje memorije\n";
+	cudaFree(d_E);
+	cudaFree(d_V);
+	cudaFree(d_C);
+
+	free(h_C);
+	cout << "done" << endl;
+	_log1.close();
+	return sec;
+}
+
+extern "C" double paralelniBFS_1_Atomics(long *h_V, long *h_E, long sizeV, long sizeE)
+{
+	cout << "paralelniBFS" << endl;
+
+	cout << "Alokacija host\n";
+	long *h_C(NULL);
+	h_C = (long*)malloc(sizeV*sizeof(long));
+	memset(h_C, 127, sizeV*sizeof(long));
+
+	//pocetne postavke za BFS
+	long pocetniCvor = 0;
+	//h_F[pocetniCvor] = 1;
+	h_C[pocetniCvor] = 0;
+
+	//alokacija na device
+	cout << "Alokacija device\n";
+	long *d_E(NULL), *d_V(NULL), *d_C(NULL);
+	cudaMalloc((void**)&d_E, sizeE*sizeof(long));
+	cudaMalloc((void**)&d_V, sizeV*sizeof(long));
+	cudaMalloc((void**)&d_C, sizeV*sizeof(long));
+
+	//kopiranje na device
+	cout << "Kopiranje na device\n";
+	cudaMemcpy(d_E, h_E, sizeE*sizeof(long), cudaMemcpyHostToDevice);
+	cudaMemcpy(d_V, h_V, sizeV*sizeof(long), cudaMemcpyHostToDevice);
+	cudaMemcpy(d_C, h_C, sizeV*sizeof(long), cudaMemcpyHostToDevice);
+
+
+	//potrebno za BFS
+	iteration = 0;
+	cudaEvent_t start, stop;
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
+	cudaDeviceSynchronize();
+
+	cout << "pocinje BFS paralelni\n";
+	clock_t p1;
+	p1 = clock();
+	cudaEventRecord(start);
+	do
+	{
+		//done = true;
+		doneI = 1;
+		int threadsPerBlock = 256<sizeV ? 256 : sizeV;
+		int blocksPerGrid = (sizeV + threadsPerBlock - 1) / threadsPerBlock;
+		//printf("CUDA kernel launch with %d blocks of %d threads\n", blocksPerGrid, threadsPerBlock);
+		//kernel_1_Share<< <blocksPerGrid,threadsPerBlock> >>(d_V, sizeV, d_E, sizeE, d_C);
+		kernel_1_Atomics << <blocksPerGrid, threadsPerBlock >> >(d_V, sizeV, d_E, sizeE, d_C);
+
+		cudaDeviceSynchronize();
+		iteration++;
+	} while (!doneI);
 	cudaEventRecord(stop);
 	double diff = (double)(clock() - p1) / CLOCKS_PER_SEC;
 	//cudaDeviceSynchronize();

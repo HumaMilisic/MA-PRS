@@ -195,3 +195,67 @@ void kernel_1_ShareAtomics(const long *V, long sizeV, const long*E, long sizeE, 
 
 }
 
+__global__ 
+void kernel_1_DynamicShare(const long *V, long sizeV, const long*E, long sizeE, long*C)
+{
+	__device__ __shared__ long lokalIte;
+	lokalIte = iteration;
+	// = iteration;
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+	if (i < sizeV)
+	{
+		if (C[i] == lokalIte)
+		{
+			done = false;
+			//kernel call
+			long pozP = V[i],
+				pozK = i + 1 < sizeV ? V[i + 1] : sizeE;
+		}
+	}
+}
+
+__device__ 
+void obradaSusjeda(const long*E,long sizeE,long*C,long sizeV,long pozP,long pozK)
+{
+	__device__ __shared__ long lokalIte;
+	lokalIte = iteration;
+	// = iteration;
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+	if (i < pozK && i>=pozP)
+	{
+		long susjed = E[i];
+		if (C[susjed]>lokalIte)
+			C[susjed] = lokalIte + 1;
+	}
+}
+
+__global__
+void kernel_1_Atomics(const long *V, long sizeV, const long*E, long sizeE, long*C)/*long *F, long*X, */
+{
+	//bool lokalDone = done;
+	//__device__ __shared__ long lokalIte;
+	//lokalIte = iteration;
+	// = iteration;
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+	if (i < sizeV)
+	{
+		if (C[i] == iteration)
+		{
+			//if (done)
+			//if (lokalDone)
+			//done = false;
+			if (doneI)
+				atomicAnd(&doneI, 0);
+			long pozP = V[i],
+				pozK = i + 1 < sizeV ? V[i + 1] : sizeE;
+			for (long j = pozP; j < pozK; j++)
+			{
+				long susjed = E[j];
+				if (C[susjed]>iteration)
+					C[susjed] = iteration + 1;
+				//long j = C[susjed];
+			}
+		}
+	}
+
+}

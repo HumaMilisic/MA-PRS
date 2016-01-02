@@ -98,7 +98,7 @@ double inputAVE(const string&path, long **V, long**E, long &sizeV, long &sizeE)
 				parse2(line, rezB);
 				n = rezB[0] + 1;
 				m = rezB[1] + 1;
-				_log << n << ";" << m << ";BFSAVEseq;";
+				//_log << n << ";" << m << ";BFSAVEseq;";
 				//FL(n);
 				//FL(m);
 				//FL(double(m / n));
@@ -185,21 +185,23 @@ double BFSAVEseq(const long *V, const long *E, const long sizeV, const long size
 
 bool testPoredjenje(vector<string>&putanje)
 {
-	for (int k = 0; k < BR_PONAVLJANJA; k++)
-	{
-		for (int i = 0; i < putanje.size(); i++)
+	for (int i = 0; i < putanje.size(); i++)
+	{			
+		long *h_V(NULL), *h_E(NULL), sizeE(0), sizeV(0);
+		cout << "inputAVE\n";
+		_log << putanje[i] << ";";
+		inputAVE(putanje[i], &h_V, &h_E, sizeV, sizeE);
+		for (int k = 0; k < BR_PONAVLJANJA; k++)
 		{
 			//F(k);
-			long *h_V(NULL), *h_E(NULL), sizeE(0), sizeV(0);
-			cout << "inputAVE\n";
-			_log << putanje[i] << ";";
-			inputAVE(putanje[i], &h_V, &h_E, sizeV, sizeE);
+
 			double _vrijeme = (BFSAVEseq(h_V, h_E, sizeV, sizeE));
 			//vrijeme.push_back(_vrijeme);
 			_log << _vrijeme << endl;
-			free(h_V);
-			free(h_E);
-		}
+
+		}			
+		free(h_V);
+		free(h_E);
 	}
 	return 0;
 

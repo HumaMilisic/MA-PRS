@@ -39,7 +39,8 @@ extern "C" double paralelniBFS_1_Share(long *h_V, long *h_E, long sizeV, long si
 extern "C" double paralelniBFSEdge(long *h_V, long *h_E, long sizeV, long sizeE);
 extern "C" double paralelniBFS_1_Edge(long *h_V, long *h_E, long sizeV, long sizeE);
 extern "C" double paralelniBFS_1_ShareAtomics(long *h_V, long *h_E, long sizeV, long sizeE);
-extern "C" double paralelniBFS_1_Atomics(long *h_V, long *h_E, long sizeV, long sizeE)
+extern "C" double paralelniBFS_1_Atomics(long *h_V, long *h_E, long sizeV, long sizeE);
+extern "C" double paralelniBFS_1_Dynamic(long *h_V, long *h_E, long sizeV, long sizeE);
 
 bool convertToMatrix(vector<string>&putanje);
 
@@ -967,6 +968,9 @@ bool testPoredjenje(vector<string>&putanje)
 			v = (paralelniBFS(h_V, h_E, sizeV, sizeE));
 			_log << putanje[i] << ";" << grafInfo << "paralelniBFS;" << v << endl;
 
+			v = (paralelniBFS_1_Dynamic(h_V, h_E, sizeV, sizeE));
+			_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1_Dynamic;" << v << endl;
+
 			//free(h_V);
 			//free(h_E);
 			//}
@@ -997,9 +1001,9 @@ bool testPoredjenje(vector<string>&putanje)
 			//	inputAVE(putanje[i], &h_V, &h_E, sizeV, sizeE);
 
 			//	//F(k);
-			v = (paralelniBFS_1(h_V, h_E, sizeV, sizeE));
+//v = (paralelniBFS_1(h_V, h_E, sizeV, sizeE));
 			//_log << "paralelniBFS_1;" << v << endl;
-			_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1;" << v << endl;
+//_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1;" << v << endl;
 			//free(h_V);
 			//free(h_E);
 			//}
@@ -1014,9 +1018,9 @@ bool testPoredjenje(vector<string>&putanje)
 			//		inputAVE(putanje[i], &h_V, &h_E, sizeV, sizeE);
 
 			//		//F(k);
-			v = (paralelniBFS_1_Share(h_V, h_E, sizeV, sizeE));
+//v = (paralelniBFS_1_Share(h_V, h_E, sizeV, sizeE));
 			//_log << "paralelniBFS_1_Share;" << v << endl;
-			_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1_Share;" << v << endl;
+//_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1_Share;" << v << endl;
 			//	}
 			//	catch (...)
 			//	{
@@ -1039,12 +1043,12 @@ bool testPoredjenje(vector<string>&putanje)
 			//	//F(k);
 
 			//extern "C" double paralelniBFS_1_Atomics(long *h_V, long *h_E, long sizeV, long sizeE)
-			v = (paralelniBFS_1_Atomics(h_V, h_E, sizeV, sizeE));
-			_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1_Atomics;" << v << endl;
+//v = (paralelniBFS_1_Atomics(h_V, h_E, sizeV, sizeE));
+//_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1_Atomics;" << v << endl;
 
-			v = (paralelniBFS_1_ShareAtomics(h_V, h_E, sizeV, sizeE));
+//v = (paralelniBFS_1_ShareAtomics(h_V, h_E, sizeV, sizeE));
 			//_log << "" << v << endl;
-			_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1_ShareAtomics;" << v << endl;
+//_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1_ShareAtomics;" << v << endl;
 			//free(h_V);
 			//free(h_E);
 			//		}
@@ -1125,31 +1129,31 @@ int main()
 	testPoredjenje(putanje);
 	
 
-	//ifstream test("costArrayProvjeraDebug.log");
+	ifstream test("costArrayProvjeraDebug.log");
 
-	//vector<long> v1,v2;
-	//string temp;
-	//vector<long>*point = NULL;
-	//while (test >> temp)
-	//{		
-	//	if (temp == ";" &&v1.empty())
-	//	{
-	//		point = &v1;
-	//		continue;
-	//	}
-	//	if (temp == ";" && !v1.empty())
-	//	{
-	//		point = &v2;
-	//		continue;
-	//	}
-	//	long cifra = atol(temp.c_str());
-	//}
+	vector<long> v1,v2;
+	string temp;
+	vector<long>*point = NULL;
+	while (test >> temp)
+	{		
+		if (temp == ";" &&v1.empty())
+		{
+			point = &v1;
+			continue;
+		}
+		if (temp == ";" && !v1.empty())
+		{
+			point = &v2;
+			continue;
+		}
+		long cifra = atol(temp.c_str());
+	}
 
-	//bool tt = v1 == v2;
-	//F(tt);
+	bool tt = v1 == v2;
+	F(tt);
 
 	_log.close();
-	//char t = getchar();
+	char t = getchar();
 	return 0;
 }
 

@@ -15,10 +15,30 @@
 #include <algorithm>
 #include <climits>
 #include "cuda_profiler_api.h"
+#define cucheck_dev(call) { cudaError_t cucheck_err = (call); if (cucheck_err != cudaSuccess) 	{		const char *err_str = cudaGetErrorString(cucheck_err);  			printf("%s (%d): %s\n", __FILE__, __LINE__, err_str);   			assert(0);	}}
 
 __device__  __managed__ bool done = true;
 __device__  __managed__ int doneI = 1;
 __device__ __managed__  long iteration = 0;
+
+
+__global__
+void obradaSusjeda(const long*E, long sizeE, long*C, long sizeV, long pozP, long pozK)
+{
+	//__device__ __shared__ long lokalIte;
+	//lokalIte = iteration;
+	// = iteration;
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+	if (i < pozK && i >= pozP)
+	{
+		long susjed = E[i];
+		if (C[susjed]>iteration)
+			C[susjed] = iteration + 1;
+	}
+}
+
+
+
 
 __global__
 void postaviGlobalneLol(bool &done, long &iteration, bool vdone, long viter)
@@ -165,6 +185,37 @@ void kernel_1_Share(const long *V, long sizeV, const long*E, long sizeE, long*C)
 }
 
 __global__
+void kernel_1_Atomics(const long *V, long sizeV, const long*E, long sizeE, long*C)/*long *F, long*X, */
+{
+	//bool lokalDone = done;
+	//__device__ __shared__ long lokalIte;
+	//lokalIte = iteration;
+	// = iteration;
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+	if (i < sizeV)
+	{
+		if (C[i] == iteration)
+		{
+			//if (done)
+			//if (lokalDone)
+			//done = false;
+			if (doneI)
+				atomicAnd(&doneI, 0);
+			long pozP = V[i],
+				pozK = i + 1 < sizeV ? V[i + 1] : sizeE;
+			for (long j = pozP; j < pozK; j++)
+			{
+				long susjed = E[j];
+				if (C[susjed]>iteration)
+					C[susjed] = iteration + 1;
+				//long j = C[susjed];
+			}
+		}
+	}
+
+}
+
+__global__
 void kernel_1_ShareAtomics(const long *V, long sizeV, const long*E, long sizeE, long*C)/*long *F, long*X, */
 {
 	//bool lokalDone = done;
@@ -196,43 +247,8 @@ void kernel_1_ShareAtomics(const long *V, long sizeV, const long*E, long sizeE, 
 }
 
 __global__ 
-void kernel_1_DynamicShare(const long *V, long sizeV, const long*E, long sizeE, long*C)
+void kernel_1_Dynamic(const long *V, long sizeV, const long*E, long sizeE, long*C)
 {
-	__device__ __shared__ long lokalIte;
-	lokalIte = iteration;
-	// = iteration;
-	int i = blockDim.x * blockIdx.x + threadIdx.x;
-	if (i < sizeV)
-	{
-		if (C[i] == lokalIte)
-		{
-			done = false;
-			//kernel call
-			long pozP = V[i],
-				pozK = i + 1 < sizeV ? V[i + 1] : sizeE;
-		}
-	}
-}
-
-__device__ 
-void obradaSusjeda(const long*E,long sizeE,long*C,long sizeV,long pozP,long pozK)
-{
-	__device__ __shared__ long lokalIte;
-	lokalIte = iteration;
-	// = iteration;
-	int i = blockDim.x * blockIdx.x + threadIdx.x;
-	if (i < pozK && i>=pozP)
-	{
-		long susjed = E[i];
-		if (C[susjed]>lokalIte)
-			C[susjed] = lokalIte + 1;
-	}
-}
-
-__global__
-void kernel_1_Atomics(const long *V, long sizeV, const long*E, long sizeE, long*C)/*long *F, long*X, */
-{
-	//bool lokalDone = done;
 	//__device__ __shared__ long lokalIte;
 	//lokalIte = iteration;
 	// = iteration;
@@ -241,21 +257,33 @@ void kernel_1_Atomics(const long *V, long sizeV, const long*E, long sizeE, long*
 	{
 		if (C[i] == iteration)
 		{
-			//if (done)
-			//if (lokalDone)
-			//done = false;
-			if (doneI)
-				atomicAnd(&doneI, 0);
+			done = false;
+			//kernel call
 			long pozP = V[i],
 				pozK = i + 1 < sizeV ? V[i + 1] : sizeE;
-			for (long j = pozP; j < pozK; j++)
-			{
-				long susjed = E[j];
-				if (C[susjed]>iteration)
-					C[susjed] = iteration + 1;
-				//long j = C[susjed];
-			}
+			//int threadsPerBlock = 256<pozK ? 256 : pozK;
+			//int blocksPerGrid = (sizeV + threadsPerBlock - 1) / threadsPerBlock;
+			int threadsPerBlock = 256 < pozK ? 256 : pozK;
+			int blocksPerGRid = (pozK + threadsPerBlock-1) / threadsPerBlock;
+			//obradaSusjeda<< < blocksPerGRid, threadsPerBlock > >>(E, sizeE, C, sizeV, pozP, pozK);
+
+			//obradaSusjeda<< <blocksPerGRid,threadsPerBlock> >>(E, sizeE, C, V, pozP, pozK);
 		}
 	}
+}
 
+__global__ void child_launch(int *data) 
+{ 
+	data[threadIdx.x] = data[threadIdx.x] + 1; 
+} 
+__global__ void parent_launch(int *data) 
+{ 
+	data[threadIdx.x] = threadIdx.x; 
+	__syncthreads(); 
+	if (threadIdx.x == 0) 
+	{ 
+		child_launch << < 1, 256 >> >(data); 
+		cudaDeviceSynchronize(); 
+	} 
+	__syncthreads(); 
 }

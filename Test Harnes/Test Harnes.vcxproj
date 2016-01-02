@@ -110,9 +110,13 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
-      <CodeGeneration>compute_30,sm_30;compute_35,sm_35;compute_37,sm_37;compute_50,sm_50;compute_52,sm_52;</CodeGeneration>
+      <CodeGeneration>compute_50,sm_50;compute_52,sm_52;</CodeGeneration>
       <Optimization>InheritFromHost</Optimization>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
     </CudaCompile>
+    <CudaLink>
+      <AdditionalOptions>-lcudadevrt %(AdditionalOptions)</AdditionalOptions>
+    </CudaLink>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -147,7 +151,7 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <SubSystem>Console</SubSystem>
-      <AdditionalDependencies>cudart.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>cudadevrt.lib;cudart.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>echo copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"
@@ -155,7 +159,8 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     </PostBuildEvent>
     <CudaCompile>
       <TargetMachinePlatform>64</TargetMachinePlatform>
-      <CodeGeneration>compute_30,sm_30;compute_35,sm_35;compute_37,sm_37;compute_50,sm_50;compute_52,sm_52;</CodeGeneration>
+      <CodeGeneration>compute_50,sm_50;compute_52,sm_52;</CodeGeneration>
+      <GenerateRelocatableDeviceCode>true</GenerateRelocatableDeviceCode>
     </CudaCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -182,39 +187,6 @@ copy "$(CudaToolkitBinDir)\cudart*.dll" "$(OutDir)"</Command>
     <Text Include="sviGrafoviInputDebug.log" />
     <Text Include="sviGrafoviInputRelease.log" />
     <Text Include="temp.log" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Input\af_shell10.graph" />
-    <None Include="Input\af_shell9.graph" />
-    <None Include="Input\asia.osm.graph" />
-    <None Include="Input\audikw1.graph" />
-    <None Include="Input\belgium.osm.graph" />
-    <None Include="Input\ecology1.graph" />
-    <None Include="Input\ecology2.graph" />
-    <None Include="Input\europe.osm.graph" />
-    <None Include="Input\germany.osm.graph" />
-    <None Include="Input\kron_g500-simple-logn16.graph" />
-    <None Include="Input\kron_g500-simple-logn21.graph" />
-    <None Include="Input\ldoor.graph" />
-    <None Include="Input\luxembourg.osm.graph" />
-    <None Include="Input\nlpkkt120.graph" />
-    <None Include="Input\nlpkkt160.graph" />
-    <None Include="Input\rgg_n_2_15_s0.graph" />
-    <None Include="Input\vsp_barth5_1Ksep_50in_5Kout.graph" />
-    <None Include="Input\vsp_bcsstk30_500sep_10in_1Kout.graph" />
-    <None Include="Input\vsp_befref_fxm_2_4_air02.graph" />
-    <None Include="Input\vsp_bump2_e18_aa01_model1_crew1.graph" />
-    <None Include="Input\vsp_c-30_data_data.graph" />
-    <None Include="Input\vsp_c-60_data_cti_cs4.graph" />
-    <None Include="Input\vsp_data_and_seymourl.graph" />
-    <None Include="Input\vsp_finan512_scagr7-2c_rlfddd.graph" />
-    <None Include="Input\vsp_mod2_pgp2_slptsk.graph" />
-    <None Include="Input\vsp_model1_crew1_cr42_south31.graph" />
-    <None Include="Input\vsp_msc10848_300sep_100in_1Kout.graph" />
-    <None Include="Input\vsp_p0291_seymourl_iiasa.graph" />
-    <None Include="Input\vsp_sctap1-2b_and_seymourl.graph" />
-    <None Include="Input\vsp_south31_slptsk.graph" />
-    <None Include="Input\vsp_vibrobox_scagr7-2c_rlfddd.graph" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

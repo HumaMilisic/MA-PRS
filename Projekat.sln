@@ -7,6 +7,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Win32 Console", "Win32 Cons
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "7.5 igranje", "7.5 igranje\7.5 igranje.vcxproj", "{10290C86-4AEA-458F-ABE9-E44C168A4080}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test Harnes", "Test Harnes\Test Harnes.vcxproj", "{FA81A457-F1D9-4E3F-8911-3CE7E9C24E27}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -29,6 +31,14 @@ Global
 		{10290C86-4AEA-458F-ABE9-E44C168A4080}.Release|Win32.Build.0 = Release|Win32
 		{10290C86-4AEA-458F-ABE9-E44C168A4080}.Release|x64.ActiveCfg = Release|x64
 		{10290C86-4AEA-458F-ABE9-E44C168A4080}.Release|x64.Build.0 = Release|x64
+		{FA81A457-F1D9-4E3F-8911-3CE7E9C24E27}.Debug|Win32.ActiveCfg = Debug|x64
+		{FA81A457-F1D9-4E3F-8911-3CE7E9C24E27}.Debug|Win32.Build.0 = Debug|x64
+		{FA81A457-F1D9-4E3F-8911-3CE7E9C24E27}.Debug|x64.ActiveCfg = Debug|x64
+		{FA81A457-F1D9-4E3F-8911-3CE7E9C24E27}.Debug|x64.Build.0 = Debug|x64
+		{FA81A457-F1D9-4E3F-8911-3CE7E9C24E27}.Release|Win32.ActiveCfg = Release|Win32
+		{FA81A457-F1D9-4E3F-8911-3CE7E9C24E27}.Release|Win32.Build.0 = Release|Win32
+		{FA81A457-F1D9-4E3F-8911-3CE7E9C24E27}.Release|x64.ActiveCfg = Release|x64
+		{FA81A457-F1D9-4E3F-8911-3CE7E9C24E27}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

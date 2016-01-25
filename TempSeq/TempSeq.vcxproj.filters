@@ -32,11 +32,8 @@
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Win32 Console.cpp">
+    <ClCompile Include="TempSeq.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Input\luxembourg.osm.graph" />
   </ItemGroup>
 </Project>

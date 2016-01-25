@@ -22,7 +22,7 @@
 #define F(x) cout<< #x " = "<<x<<"\n";
 //#define FL(x) _log<<" "#x " = "<<x<<" ";
 #define FI 0.0001
-const int BR_PONAVLJANJA = 10;
+const int BR_PONAVLJANJA = 20;
 
 using namespace std;
 
@@ -130,6 +130,62 @@ double inputAVE(const string&path, long **V, long**E, long &sizeV, long &sizeE)
 	return -1;
 }
 
+double BFSAVEseq2(const long *V, const long *E, const long sizeV, const long sizeE)
+{
+	vector<bool> dodaniURed(sizeV, false);
+	vector<bool> posjecenCvor(sizeV, false);
+	vector<long>redoslijed;
+	queue<long>redCvorova;
+
+	long pocetniCvor = 0;
+	redCvorova.push(pocetniCvor);
+	dodaniURed[pocetniCvor] = true;
+	//redoslijed.push_back(pocetniCvor);
+
+	long brPosjecenih = 0;
+	clock_t t1 = clock();
+	while (redCvorova.size()>0 && brPosjecenih<sizeV)
+	{
+		long trenutniCvor = redCvorova.front();
+		redCvorova.pop();
+
+		if (posjecenCvor[trenutniCvor])
+			continue;
+
+		brPosjecenih++;
+		posjecenCvor[trenutniCvor] = true;
+		redoslijed.push_back(trenutniCvor);
+
+		long pozP = V[trenutniCvor],
+			pozK = trenutniCvor + 1 < sizeV ? V[trenutniCvor + 1] : sizeE;
+		//F(pozP);
+		//F(pozK);
+#pragma omp parallel for private(susjed) default(shared)
+		for (int i = pozP; i < pozK; i++)
+		{
+			long susjed = E[i];
+
+			if (posjecenCvor[susjed] || dodaniURed[susjed])
+			{
+				continue;
+			}
+#pragma omp critical(redCvorova)
+			{
+				redCvorova.push(susjed);
+			}
+			dodaniURed[susjed] = true;
+		}
+	}
+	double diff = (double)(clock() - t1) / CLOCKS_PER_SEC;
+	//_log << "\nBFSAVEseq: " << diff << endl;
+	cout << endl << ": The time taken for seq Breadth first search: " << diff << endl;
+	//cout << "\nBFSAVEseq: ";
+	//copy(redoslijed.begin(), redoslijed.end(), ostream_iterator<long>(cout, ", "));
+
+	return diff;
+
+}
+
 double BFSAVEseq(const long *V, const long *E, const long sizeV, const long sizeE)
 {
 	vector<bool> dodaniURed(sizeV, false);
@@ -160,6 +216,7 @@ double BFSAVEseq(const long *V, const long *E, const long sizeV, const long size
 			pozK = trenutniCvor + 1 < sizeV ? V[trenutniCvor + 1] : sizeE;
 		//F(pozP);
 		//F(pozK);
+
 		for (int i = pozP; i < pozK; i++)
 		{
 			long susjed = E[i];
@@ -168,8 +225,8 @@ double BFSAVEseq(const long *V, const long *E, const long sizeV, const long size
 			{
 				continue;
 			}
-
 			redCvorova.push(susjed);
+
 			dodaniURed[susjed] = true;
 		}
 	}
@@ -197,8 +254,11 @@ bool testPoredjenje(vector<string>&putanje)
 
 			double _vrijeme = (BFSAVEseq(h_V, h_E, sizeV, sizeE));
 			//vrijeme.push_back(_vrijeme);
-			_log << _vrijeme << endl;
+			_log <<"BFSAVEseq: "<< _vrijeme << endl;
 
+			_vrijeme = (BFSAVEseq2(h_V, h_E, sizeV, sizeE));
+			//vrijeme.push_back(_vrijeme);
+			_log << "BFSAVEseq2: " << _vrijeme << endl;
 		}			
 		free(h_V);
 		free(h_E);
@@ -234,6 +294,19 @@ bool putanjeGrafova(vector<string>&putanje)
 	return fail;
 }
 
+long *red;
+long maxSize;
+long currentSize;
+
+void dodaj(long item)
+{
+	if (currentSize < maxSize)
+	{
+		long trenutni = currentSize++;
+		red[trenutni] = item;
+	}
+}
+
 int _tmain()
 {
 	std::time_t result = std::time(nullptr);
@@ -253,8 +326,20 @@ int _tmain()
 	copy(putanje.begin(), putanje.end(), ostream_iterator<string>(cout, ", "));
 	cout << "\n\nOtvoriti sve iz input foldera\n";
 
-	testPoredjenje(putanje);
+	//testPoredjenje(putanje);
+	red = new long[10];
+	maxSize = 10;
+	currentSize = 0;
 
-	//system("pause");
+	dodaj(12);
+	dodaj(55);
+	copy(red, red+currentSize, ostream_iterator<long>(cout, ", "));
+	cout << endl;
+
+
+	delete[] red;
+
+
+	system("pause");
 	return 0;
 }

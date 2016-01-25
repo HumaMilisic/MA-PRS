@@ -17,8 +17,11 @@
 #include <numeric>
 #include <cmath>
 #include <queue>
+#include <cstdio>
+#include <cstdlib>
 
 #include "tinydir.h"
+#include "InputPotrebno.h"
 
 #define TEST_STR "Input//simple.prs"
 #define F(x) cout<< #x " = "<<x<<"\n";
@@ -31,7 +34,7 @@ using namespace std;
 ofstream _log;// ("tempsfddddD.log");
 
 extern "C" bool runTest();
-
+extern "C" void testRed(long *niz);
 extern "C" double paralelniBFS(long *h_V, long*h_E, long sizeV, long sizeE);
 extern "C" double paralelniBFS_64(long *h_V, long *h_E, long sizeV, long sizeE);
 extern "C" double paralelniBFS_1(long *h_V, long *h_E, long sizeV, long sizeE);
@@ -112,7 +115,7 @@ inline bool parse(const string &line, vector<long>&rezB)
 	std::string::size_type sz;
 	while (pch != NULL)
 	{
-		rezB.push_back(stol(pch, &sz)-1);
+		rezB.push_back(stol(pch, &sz) - 1);
 		pch = strtok(NULL, " ");
 	}
 	delete[] temp;
@@ -127,7 +130,7 @@ inline bool parse2(const string &line, vector<long>&rezB)
 	std::string::size_type sz;
 	while (pch != NULL)
 	{
-		rezB.push_back(atol(pch)-1);
+		rezB.push_back(atol(pch) - 1);
 		pch = strtok(NULL, " ");
 	}
 	delete[] temp;
@@ -166,7 +169,7 @@ inline bool parse2_1(const string &line, vector<long>&rezB)
 //	return 0;
 //}
 
-double inputCV(const string&path, vector<vector<long>>&graf,ostream &log)
+double inputCV(const string&path, vector<vector<long>>&graf, ostream &log)
 {
 	_log << "inputCV: " << path;// >> endl;
 	ifstream in(path);
@@ -174,18 +177,18 @@ double inputCV(const string&path, vector<vector<long>>&graf,ostream &log)
 	long n, m;
 	bool nNM = true;
 
-	clock_t t0; 
+	clock_t t0;
 	if (in.is_open())
 	{
 		cout << path << " is open\n";
 		string line = "";
 		t0 = clock();
-		while (getline(in,line))
+		while (getline(in, line))
 		{
 			if (in.bad())
 				break;
 			if (line[0] == '%')
-				continue; 
+				continue;
 
 			vector<long>rezB;
 			parse(line, rezB);
@@ -204,7 +207,7 @@ double inputCV(const string&path, vector<vector<long>>&graf,ostream &log)
 		double diff = (double)(clock() - t0) / CLOCKS_PER_SEC;
 		//cout << endl << "The time taken for inputCV(const string&path, vector<vector<long>>&graf): " << diff << "ms" << endl;
 		FL(n); FL(m);
-		_log << " "<<diff << " ms\n";
+		_log << " " << diff << " ms\n";
 		return diff;
 	}
 
@@ -248,7 +251,7 @@ double inputCV2(const string&path, vector<vector<long>>&graf, ofstream &log)
 		double diff = (double)(clock() - t0) / CLOCKS_PER_SEC;
 		//cout << endl << "The time taken for inputCV(const string&path, vector<vector<long>>&graf): " << diff << "ms" << endl;
 		FL(n); FL(m);
-		_log << " "<<diff << " ms\n";
+		_log << " " << diff << " ms\n";
 		return  diff;
 	}
 
@@ -256,7 +259,7 @@ double inputCV2(const string&path, vector<vector<long>>&graf, ofstream &log)
 	return 0;
 }
 
-double inputCV3(const string&path, vector<vector<long>>&graf,ofstream &log)
+double inputCV3(const string&path, vector<vector<long>>&graf, ofstream &log)
 {
 	_log << "inputCV3: " << path;// >> endl;
 	ifstream in(path);
@@ -275,7 +278,7 @@ double inputCV3(const string&path, vector<vector<long>>&graf,ofstream &log)
 			if (line[0] == '%')
 				continue;
 
-			vector<long>rezB (strURedBrojeva(line));
+			vector<long>rezB(strURedBrojeva(line));
 			if (nNM)
 			{
 				n = rezB[0];
@@ -289,7 +292,7 @@ double inputCV3(const string&path, vector<vector<long>>&graf,ofstream &log)
 		double diff = (double)(clock() - t0) / CLOCKS_PER_SEC;
 		//cout << endl << "The time taken for inputCV(const string&path, vector<vector<long>>&graf): " << diff << "ms" << endl;
 		FL(n); FL(m);
-		_log << " "<<diff <<  " ms\n";
+		_log << " " << diff << " ms\n";
 		return diff;
 	}
 
@@ -326,7 +329,7 @@ double inputCVE(const string&path, vector<long> &V, vector<long>&E)
 				n = rezB[0];
 				m = rezB[1];
 				V.reserve(n);
-				E.reserve(2*m+10);
+				E.reserve(2 * m + 10);
 				nNM = false;
 				continue;
 			}
@@ -334,14 +337,14 @@ double inputCVE(const string&path, vector<long> &V, vector<long>&E)
 			for (int k = 0; k < rezB.size(); k++)
 				E.push_back(rezB[k]);
 			//if (V.size() < n)
-				V.push_back(E.size());
+			V.push_back(E.size());
 			//graf.push_back(rezB);
 		}
 		double diff = (double)(clock() - t0) / CLOCKS_PER_SEC;
 		cout << endl << "The time taken for inputCVE: " << diff << endl;
 		FL(n); FL(m); //FL(E.size()); FL(E.capacity());
 		_log << " " << diff << " ms\n";
-		
+
 		return diff;
 	}
 
@@ -386,7 +389,7 @@ double inputCVE2(const string&path, vector<long> &V, vector<long>&E)
 			for (int k = 0; k < rezB.size(); k++)
 				E.push_back(rezB[k]);
 			//if (V.size() < n)
-				V.push_back(E.size());
+			V.push_back(E.size());
 			//graf.push_back(rezB);
 		}
 		double diff = (double)(clock() - t0) / CLOCKS_PER_SEC;
@@ -424,17 +427,17 @@ double inputCVE2_1(const string&path, vector<long> &V, vector<long>&E)
 
 
 			if (nNM)
-			{			
+			{
 				vector<long>rezB;
 				parse2(line, rezB);
 				//F(rezB[0]);
 				//F(rezB[1]);
-				n = rezB[0]+1;
-				m = rezB[1]+1;
+				n = rezB[0] + 1;
+				m = rezB[1] + 1;
 				//F(n);
 				//F(m);
 				V.reserve(n);
-				E.reserve(2 * m+10);
+				E.reserve(2 * m + 10);
 				V.push_back(0);
 				nNM = false;
 				continue;
@@ -481,7 +484,7 @@ inline void parseA(string &line, long *E, long&sizeE)
 	delete[] temp;
 }
 
-inline void dodajUNiz(long *V, long &sizeV,long sizeE,long n)
+inline void dodajUNiz(long *V, long &sizeV, long sizeE, long n)
 {
 	if (sizeV < n)
 	{
@@ -512,7 +515,7 @@ double inputAVE(const string&path, long **V, long**E, long &sizeV, long &sizeE)
 				break;
 			if (line[0] == '%')
 				continue;
-			
+
 			if (nNM)
 			{
 				vector<long>rezB;
@@ -527,13 +530,13 @@ double inputAVE(const string&path, long **V, long**E, long &sizeV, long &sizeE)
 				try
 				{
 					*V = (long*)malloc(n*sizeof(long));
-					*E = (long*)malloc((2*m+10)*sizeof(long));
+					*E = (long*)malloc((2 * m + 10)*sizeof(long));
 					if (*V == NULL || *E == NULL)
 					{
 						cout << "memory fail" << endl;
 						throw "nope";;
 					}
-						
+
 				}
 				catch (...)
 				{
@@ -546,18 +549,18 @@ double inputAVE(const string&path, long **V, long**E, long &sizeV, long &sizeE)
 				nNM = false;
 				//memset(niz, 0, size*sizeof(int));
 				memset(*V, 0, n*sizeof(long));
-				memset(*E, 0, 2*m*sizeof(long));
+				memset(*E, 0, 2 * m*sizeof(long));
 				sizeV++;
 				continue;
 				//break;
 			}
-				
+
 			parseA(line, *E, sizeE);
 
 			dodajUNiz(*V, sizeV, sizeE, n);
-			
+
 		}
-		
+
 		double diff = (double)(clock() - t0) / CLOCKS_PER_SEC;
 		//FL(n); FL(m);
 		//_log << " " << diff << " \n";
@@ -643,7 +646,7 @@ double inputAVE(const string&path, long **V, long**E, long &sizeV, long &sizeE)
 //}
 
 
-bool input(const string &path,vector<string>&rez)
+bool input(const string &path, vector<string>&rez)
 {
 	//vector<string>rez;
 	ifstream in(path);
@@ -664,7 +667,7 @@ bool input(const string &path,vector<string>&rez)
 			//break;
 		}
 		double diff = (double)(clock() - t0) / CLOCKS_PER_SEC;
-		cout << endl << "The time taken for input(const string &path,vector<string>&rez): " << diff <<"ms"<< endl;
+		cout << endl << "The time taken for input(const string &path,vector<string>&rez): " << diff << "ms" << endl;
 	}
 	in.close();
 	return fail;
@@ -688,7 +691,7 @@ bool putanjeGrafova(vector<string>&putanje)
 
 			if (!file.is_dir)
 				putanje.push_back(file.path);
-			
+
 			tinydir_next(&dir);
 			fail = false;
 		}
@@ -808,7 +811,7 @@ bool testInput(vector<string>&putanje)
 	return 0;
 }
 
-double BFSseq(vector<long>&V,vector<long>&E)
+double BFSseq(vector<long>&V, vector<long>&E)
 {
 	vector<bool> dodaniURed(V.size(), false);
 	vector<bool> posjecenCvor(V.size(), false);
@@ -834,7 +837,7 @@ double BFSseq(vector<long>&V,vector<long>&E)
 		posjecenCvor[trenutniCvor] = true;
 		redoslijed.push_back(trenutniCvor);
 
-		long pozP = V[trenutniCvor], 
+		long pozP = V[trenutniCvor],
 			pozK = trenutniCvor + 1 < V.size() ? V[trenutniCvor + 1] : E.size();
 		//F(pozP);
 		//F(pozK);
@@ -842,7 +845,7 @@ double BFSseq(vector<long>&V,vector<long>&E)
 		{
 			long susjed = E[i];
 
-			if (posjecenCvor[susjed]||dodaniURed[susjed])
+			if (posjecenCvor[susjed] || dodaniURed[susjed])
 			{
 				continue;
 			}
@@ -858,7 +861,7 @@ double BFSseq(vector<long>&V,vector<long>&E)
 	return diff;
 }
 
-double BFSAVEseq(const long *V,const long *E,const long sizeV,const long sizeE)
+double BFSAVEseq(const long *V, const long *E, const long sizeV, const long sizeE)
 {
 	vector<bool> dodaniURed(sizeV, false);
 	vector<bool> posjecenCvor(sizeV, false);
@@ -928,12 +931,12 @@ bool testBFSseq(vector<string>&putanje)
 
 		for (int k = 0; k < BR_PONAVLJANJA; k++)
 		{
-			F(k);			
+			F(k);
 			vrijeme.push_back(BFSseq(tempV, tempE));
 		}
 		suma = std::accumulate(vrijeme.begin(), vrijeme.end(), 0.0f);
 		_log << endl;
-		_log << putanje[i]<<": BFSseq Prosjek " << suma / vrijeme.size() << endl << endl;
+		_log << putanje[i] << ": BFSseq Prosjek " << suma / vrijeme.size() << endl << endl;
 		prosjeci.push_back(suma / vrijeme.size());
 		vrijeme.clear();
 
@@ -954,6 +957,7 @@ bool testBFSseq(vector<string>&putanje)
 	return 0;
 }
 
+
 bool testPoredjenje(vector<string>&putanje)
 {
 	for (int i = 0; i < putanje.size(); i++)
@@ -968,8 +972,8 @@ bool testPoredjenje(vector<string>&putanje)
 			v = (paralelniBFS(h_V, h_E, sizeV, sizeE));
 			_log << putanje[i] << ";" << grafInfo << "paralelniBFS;" << v << endl;
 
-			v = (paralelniBFS_1_Dynamic(h_V, h_E, sizeV, sizeE));
-			_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1_Dynamic;" << v << endl;
+			//v = (paralelniBFS_1_Dynamic(h_V, h_E, sizeV, sizeE));
+			//_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1_Dynamic;" << v << endl;
 
 			//free(h_V);
 			//free(h_E);
@@ -1001,9 +1005,9 @@ bool testPoredjenje(vector<string>&putanje)
 			//	inputAVE(putanje[i], &h_V, &h_E, sizeV, sizeE);
 
 			//	//F(k);
-//v = (paralelniBFS_1(h_V, h_E, sizeV, sizeE));
+v = (paralelniBFS_1(h_V, h_E, sizeV, sizeE));
 			//_log << "paralelniBFS_1;" << v << endl;
-//_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1;" << v << endl;
+_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1;" << v << endl;
 			//free(h_V);
 			//free(h_E);
 			//}
@@ -1018,9 +1022,9 @@ bool testPoredjenje(vector<string>&putanje)
 			//		inputAVE(putanje[i], &h_V, &h_E, sizeV, sizeE);
 
 			//		//F(k);
-//v = (paralelniBFS_1_Share(h_V, h_E, sizeV, sizeE));
+v = (paralelniBFS_1_Share(h_V, h_E, sizeV, sizeE));
 			//_log << "paralelniBFS_1_Share;" << v << endl;
-//_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1_Share;" << v << endl;
+_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1_Share;" << v << endl;
 			//	}
 			//	catch (...)
 			//	{
@@ -1043,12 +1047,12 @@ bool testPoredjenje(vector<string>&putanje)
 			//	//F(k);
 
 			//extern "C" double paralelniBFS_1_Atomics(long *h_V, long *h_E, long sizeV, long sizeE)
-//v = (paralelniBFS_1_Atomics(h_V, h_E, sizeV, sizeE));
-//_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1_Atomics;" << v << endl;
+v = (paralelniBFS_1_Atomics(h_V, h_E, sizeV, sizeE));
+_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1_Atomics;" << v << endl;
 
-//v = (paralelniBFS_1_ShareAtomics(h_V, h_E, sizeV, sizeE));
+v = (paralelniBFS_1_ShareAtomics(h_V, h_E, sizeV, sizeE));
 			//_log << "" << v << endl;
-//_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1_ShareAtomics;" << v << endl;
+_log << putanje[i] << ";" << grafInfo << "paralelniBFS_1_ShareAtomics;" << v << endl;
 			//free(h_V);
 			//free(h_E);
 			//		}
@@ -1108,6 +1112,31 @@ void alloc(int **niz,int size)
 
 extern "C" void uhvatiNiz(long *niz, long size);
 
+struct razlike
+{
+	long i;
+	long prvi;
+	long drugi;
+};
+
+void generisiGraf(long n)
+{
+	string putanja = "Input//simple" + to_string(n) + "x" + to_string(n) + ".prs";
+//	int n, i, j;
+//	printf("Broj cvorova: ");
+//	scanf("%d", &n);
+	FILE *f = fopen(putanja.c_str(), "w");
+	fprintf(f, "%d %d\n", n, n*(n - 1) / 2);
+	for (long i = 1; i <= n; i++) {
+		for (long j = 1; j <= n; j++) {
+			if (i != j)
+				fprintf(f, "%d ", j);
+		}
+		fprintf(f, "\n");
+	}
+	fclose(f);
+}
+
 int main()
 {
 	std::time_t result = std::time(nullptr);
@@ -1124,37 +1153,77 @@ int main()
 	}
 	copy(putanje.begin(), putanje.end(), ostream_iterator<string>(cout, ", "));
 	cout << "\n\nOtvoriti sve iz input foldera\n";
+
+	//long n = 10;
+	//for (int i = 1; i < 11; i++)
+	//{
+	//	F(i);
+	//	long tempp = static_cast<long>(pow(10, i));
+	//	F(tempp);
+	//	generisiGraf(tempp);
+	//}
 	//convertToMatrix(putanje);
 	//char t = getchar();
 	testPoredjenje(putanje);
-	
+	//
 
-	ifstream test("costArrayProvjeraDebug.log");
-
-	vector<long> v1,v2;
-	string temp;
-	vector<long>*point = NULL;
-	while (test >> temp)
-	{		
-		if (temp == ";" &&v1.empty())
-		{
-			point = &v1;
-			continue;
-		}
-		if (temp == ";" && !v1.empty())
-		{
-			point = &v2;
-			continue;
-		}
-		long cifra = atol(temp.c_str());
-	}
-
-	bool tt = v1 == v2;
-	F(tt);
-
+	//ifstream test("costArrayProvjeraDebugOOO.log");
+	//cout << "Provjera:" << endl;
+	//vector<long> v1,v2;
+	//string temp;
+	//vector<long>*point = NULL;
+	//while (test >> temp)
+	//{		
+	//	if (temp == ";" &&v1.empty())
+	//	{
+	//		point = &v1;
+	//		continue;
+	//	}
+	//	if (temp == ";" && !v1.empty())
+	//	{
+	//		point = &v2;
+	//		continue;
+	//	}
+	//	if (temp == ";" && !v2.empty() && !v1.empty())
+	//	{
+	//		break;
+	//	}
+	//	long cifra = atol(temp.c_str());
+	//	point->push_back(cifra);
+	//}
+	//cout << "While gotov" << endl;
+	//bool tt = v1 == v2;
+	//vector<razlike>raa;
+	//if (v1.size() != v2.size())
+	//	cout << "Razlicite dimenzije" << endl;
+	//for (long i = 0; i < v1.size(); i++)
+	//{
+	//	if (i == 148) //i: 149, prvi:212, drugi:211)
+	//	{
+	//		F(v1[i]);
+	//		F(v2[i]);
+	//	}
+	//	if (v1[i] != v2[i])
+	//	{
+	//		razlike temp;
+	//		temp.i = i;
+	//		temp.prvi = v1[i];
+	//		temp.drugi = v2[i];
+	//		raa.push_back(temp);
+	//		//cout << "i: " << temp.i << ", prvi:" << raa[i].prvi << ", drugi:" << raa[i].drugi << endl;
+	//	}
+	//}
+	//
+	//_log << endl;
+	//for (int i = 0; i < raa.size(); i++)
+	//{
+	//	_log << "i: " << raa[i].i << ", prvi:" << raa[i].prvi << ", drugi:" << raa[i].drugi << endl;
+	//}
 	_log.close();
-	char t = getchar();
-	return 0;
+	//F(tt);
+	//char t = getchar();
+	exit(0);
+	//return 0;
 }
 
 bool convertToMatrix(vector<string>&putanje)

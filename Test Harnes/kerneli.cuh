@@ -15,37 +15,37 @@
 #include <algorithm>
 #include <climits>
 #include "cuda_profiler_api.h"
-#define cucheck_dev(call) { cudaError_t cucheck_err = (call); if (cucheck_err != cudaSuccess) 	{		const char *err_str = cudaGetErrorString(cucheck_err);  			printf("%s (%d): %s\n", __FILE__, __LINE__, err_str);   			assert(0);	}}
+//#define cucheck_dev(call) { cudaError_t cucheck_err = (call); if (cucheck_err != cudaSuccess) 	{		const char *err_str = cudaGetErrorString(cucheck_err);  			printf("%s (%d): %s\n", __FILE__, __LINE__, err_str);   			assert(0);	}}
 
 __device__  __managed__ bool done = true;
 __device__  __managed__ int doneI = 1;
 __device__ __managed__  long iteration = 0;
+__device__ __managed__ long currentSize;
+__device__ __managed__ long maxSize;
 
+//__global__ 
+//void kernel_Red(const long *V,long sizeV,const long *E,long sizeE)
+//{
+//	int i = blockDim.x * blockIdx.x + threadIdx.x;
+//	if (i<sizeV)
+//}
 
-__global__
-void obradaSusjeda(const long*E, long sizeE, long*C, long sizeV, long pozP, long pozK)
-{
-	//__device__ __shared__ long lokalIte;
-	//lokalIte = iteration;
-	// = iteration;
-	int i = blockDim.x * blockIdx.x + threadIdx.x;
-	if (i < pozK && i >= pozP)
-	{
-		long susjed = E[i];
-		if (C[susjed]>iteration)
-			C[susjed] = iteration + 1;
-	}
-}
+//__global__
+//void testRedPush(long *red)
+//{
+//	int i = threadIdx.x;
+//	pushAtomic(i, red);
+//}
+//
+//__device__
+//void pushAtomic(long value,long *red)
+//{
+//	/*long trenutni = currentSize++;
+//	red[trenutni] = value;*/
+//	long temp = atomicInc(&currentSize, maxSize);
+//	red[temp] = value;
+//}
 
-
-
-
-__global__
-void postaviGlobalneLol(bool &done, long &iteration, bool vdone, long viter)
-{
-	done = vdone;
-	iteration = viter;
-}
 
 __global__
 void vectorAdd(const float *A, const float *B, float *C, int numElements)
@@ -118,7 +118,8 @@ void kernel_1(const long *V, long sizeV, const long*E, long sizeE, long*C)/*long
 		if (C[i] == iteration)
 		{
 			//if (done)
-			done = false;
+			if (done)
+				done = false;
 			long pozP = V[i],
 				pozK = i + 1 < sizeV ? V[i + 1] : sizeE;
 			for (long j = pozP; j < pozK; j++)
@@ -167,7 +168,8 @@ void kernel_1_Share(const long *V, long sizeV, const long*E, long sizeE, long*C)
 		{
 			//if (done)
 			//if (lokalDone)
-			done = false;
+			if (done)
+				done = false;
 			//if (doneI)
 			//	atomicAnd(&doneI, 1);
 			long pozP = V[i],
@@ -196,10 +198,8 @@ void kernel_1_Atomics(const long *V, long sizeV, const long*E, long sizeE, long*
 	{
 		if (C[i] == iteration)
 		{
-			//if (done)
-			//if (lokalDone)
-			//done = false;
-			if (doneI)
+			//doneI &= 0;
+			if (doneI)		
 				atomicAnd(&doneI, 0);
 			long pozP = V[i],
 				pozK = i + 1 < sizeV ? V[i + 1] : sizeE;
@@ -208,7 +208,6 @@ void kernel_1_Atomics(const long *V, long sizeV, const long*E, long sizeE, long*
 				long susjed = E[j];
 				if (C[susjed]>iteration)
 					C[susjed] = iteration + 1;
-				//long j = C[susjed];
 			}
 		}
 	}
@@ -245,6 +244,18 @@ void kernel_1_ShareAtomics(const long *V, long sizeV, const long*E, long sizeE, 
 	}
 
 }
+__global__
+void obradaSusjeda(long offset,const long*E,long sizeE,long pozP,long pozK,long *C)//const long*E, long sizeE, long*C, long sizeV, long pozP, long pozK)
+{
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+	//i += offset;
+	if (i >= pozP && i < pozK)
+	{
+		long susjed = E[i];
+		if (C[susjed] > iteration)
+			C[susjed] = iteration + 1;
+	}
+}
 
 __global__ 
 void kernel_1_Dynamic(const long *V, long sizeV, const long*E, long sizeE, long*C)
@@ -261,10 +272,17 @@ void kernel_1_Dynamic(const long *V, long sizeV, const long*E, long sizeE, long*
 			//kernel call
 			long pozP = V[i],
 				pozK = i + 1 < sizeV ? V[i + 1] : sizeE;
+			long offset = pozK - pozP;
 			//int threadsPerBlock = 256<pozK ? 256 : pozK;
 			//int blocksPerGrid = (sizeV + threadsPerBlock - 1) / threadsPerBlock;
+			//int threadsPerBlock = 256 < (pozK - offset) ? 256 : (pozK - offset);
+			//int blocksPerGRid = (pozK - offset + threadsPerBlock-1) / threadsPerBlock;
 			int threadsPerBlock = 256 < pozK ? 256 : pozK;
-			int blocksPerGRid = (pozK + threadsPerBlock-1) / threadsPerBlock;
+			int blocksPerGRid = (pozK + threadsPerBlock - 1) / threadsPerBlock;
+			__syncthreads();
+			obradaSusjeda<< <blocksPerGRid,threadsPerBlock>> >(offset,E,sizeE,pozP,pozK,C);
+			cudaDeviceSynchronize();
+			__syncthreads();
 			//obradaSusjeda<< < blocksPerGRid, threadsPerBlock > >>(E, sizeE, C, sizeV, pozP, pozK);
 
 			//obradaSusjeda<< <blocksPerGRid,threadsPerBlock> >>(E, sizeE, C, V, pozP, pozK);
@@ -287,3 +305,5 @@ __global__ void parent_launch(int *data)
 	} 
 	__syncthreads(); 
 }
+
+

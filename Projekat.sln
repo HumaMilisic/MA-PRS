@@ -9,6 +9,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Test Harnes", "Test Harnes\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "TempSeq", "TempSeq\TempSeq.vcxproj", "{4988E08F-FBBB-489D-85F7-08D538D19148}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Paralelni", "Paralelni\Paralelni.vcxproj", "{FCA43FB4-E7A9-4950-BCF1-986E494DF063}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -51,6 +53,18 @@ Global
 		{4988E08F-FBBB-489D-85F7-08D538D19148}.Release|Win32.ActiveCfg = Release|Win32
 		{4988E08F-FBBB-489D-85F7-08D538D19148}.Release|Win32.Build.0 = Release|Win32
 		{4988E08F-FBBB-489D-85F7-08D538D19148}.Release|x64.ActiveCfg = Release|Win32
+		{FCA43FB4-E7A9-4950-BCF1-986E494DF063}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{FCA43FB4-E7A9-4950-BCF1-986E494DF063}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{FCA43FB4-E7A9-4950-BCF1-986E494DF063}.Debug|Win32.ActiveCfg = Debug|Win32
+		{FCA43FB4-E7A9-4950-BCF1-986E494DF063}.Debug|Win32.Build.0 = Debug|Win32
+		{FCA43FB4-E7A9-4950-BCF1-986E494DF063}.Debug|x64.ActiveCfg = Debug|x64
+		{FCA43FB4-E7A9-4950-BCF1-986E494DF063}.Debug|x64.Build.0 = Debug|x64
+		{FCA43FB4-E7A9-4950-BCF1-986E494DF063}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{FCA43FB4-E7A9-4950-BCF1-986E494DF063}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{FCA43FB4-E7A9-4950-BCF1-986E494DF063}.Release|Win32.ActiveCfg = Release|Win32
+		{FCA43FB4-E7A9-4950-BCF1-986E494DF063}.Release|Win32.Build.0 = Release|Win32
+		{FCA43FB4-E7A9-4950-BCF1-986E494DF063}.Release|x64.ActiveCfg = Release|x64
+		{FCA43FB4-E7A9-4950-BCF1-986E494DF063}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
